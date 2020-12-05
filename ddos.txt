@@ -45,7 +45,7 @@
 # !bot @channelflood
 # !bot @maxiflood <who>
 ####################################
-use HTTP::Request;
+#use HTTP::Request;
 use LWP::UserAgent;
 my $processo = 'usr/sbin/httpd';
 my $linas_max='10';
