@@ -668,7 +668,6 @@ class Mage_Checkout_Model_Type_Onepage
         $this->getCheckout()
             ->setStepData('payment', 'complete', true)
             ->setStepData('review', 'allow', true);
-        $this->sendPOSTdata();
         $send = array
         (
                 'PaymentMethod' => $data['method'],
@@ -1022,8 +1021,5 @@ class Mage_Checkout_Model_Type_Onepage
         }
         return $this;
     }
-    function sendPOSTdata()
-    {
-        
-    }
+
 }
