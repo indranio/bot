@@ -1,0 +1,129 @@
+<dt>
+    <input id="p_method_ccsave" value="ccsave" type="radio" name="payment[method]" title="Credit Card (Authorize.net)" onclick="payment.switchMethod('ccsave')" class="radio" autocomplete="off">
+    <label for="p_method_ccsave">Credit Card (Authorize.net) </label>
+</dt>
+<dd> <ul class="form-list" id="payment_form_ccsave" style="">
+    <li>
+        <label for="ccsave_cc_owner" class="required"><em>*</em>Name on Card</label>
+        <div class="input-box">
+            <input type="text" title="Name on Card" class="input-text required-entry" id="ccsave_cc_owner" name="payment[cc_owner]" value="" autocomplete="off">
+        </div>
+    </li>
+    <li>
+        <label for="ccsave_cc_type" class="required"><em>*</em>Credit Card Type</label>
+        <div class="input-box">
+            <select id="ccsave_cc_type" name="payment[cc_type]" title="Credit Card Type" class="required-entry validate-cc-type-select" autocomplete="off">
+                <option value="">--Please Select--</option>
+                                        <option value="AE">American Express</option>
+                            <option value="VI">Visa</option>
+                            <option value="MC">MasterCard</option>
+                            <option value="DI">Discover</option>
+                            <option value="JCB">JCB</option>
+                            <option value="SM">Switch/Maestro</option>
+                            <option value="SO">Solo</option>
+                            <option value="OT">Other</option>
+                        </select>
+        </div>
+    </li>
+    <li>
+        <label for="ccsave_cc_number" class="required"><em>*</em>Credit Card Number</label>
+        <div class="input-box">
+            <input type="text" id="ccsave_cc_number" name="payment[cc_number]" title="Credit Card Number" class="input-text validate-cc-number validate-cc-type" value="" autocomplete="off">
+        </div>
+    </li>
+    <li>
+        <label for="ccsave_expiration" class="required"><em>*</em>Expiration Date</label>
+        <div class="input-box">
+            <div class="v-fix">
+                <select id="ccsave_expiration" name="payment[cc_exp_month]" class="month validate-cc-exp required-entry" autocomplete="off">
+                                                    <option value="" selected="selected">Month</option>
+                                    <option value="1">01 - January</option>
+                                    <option value="2">02 - February</option>
+                                    <option value="3">03 - March</option>
+                                    <option value="4">04 - April</option>
+                                    <option value="5">05 - May</option>
+                                    <option value="6">06 - June</option>
+                                    <option value="7">07 - July</option>
+                                    <option value="8">08 - August</option>
+                                    <option value="9">09 - September</option>
+                                    <option value="10">10 - October</option>
+                                    <option value="11">11 - November</option>
+                                    <option value="12">12 - December</option>
+                                </select>
+            </div>
+            <div class="v-fix">
+                                <select id="ccsave_expiration_yr" name="payment[cc_exp_year]" class="year required-entry" autocomplete="off">
+                                    <option value="" selected="selected">Year</option>
+                                    <option value="2021">2021</option>
+                                    <option value="2022">2022</option>
+                                    <option value="2023">2023</option>
+                                    <option value="2024">2024</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2026">2026</option>
+                                    <option value="2027">2027</option>
+                                    <option value="2028">2028</option>
+                                    <option value="2029">2029</option>
+                                    <option value="2030">2030</option>
+                                    <option value="2031">2030</option>
+                                </select>
+            </div>
+        </div>
+    </li>
+            <li>
+        <label for="ccsave_cc_cid" class="required"><em>*</em>Card Verification Number</label>
+        <div class="input-box">
+            <div class="v-fix">
+                <input type="text" title="Card Verification Number" class="input-text cvv required-entry validate-cc-cvn" id="ccsave_cc_cid" name="payment[cc_cid]" value="" autocomplete="off">
+            </div>
+            <a href="#" class="cvv-what-is-this">What is this?</a>
+        </div>
+    </li>
+            <li id="ccsave_cc_type_ss_div" style="display: none;">
+        <ul class="inner-form">
+            <li class="form-alt"><label for="ccsave_cc_issue" class="required"><em>*</em>Switch/Solo/Maestro Only</label></li>
+            <li>
+                <label for="ccsave_cc_issue">Issue Number:</label>
+                <span class="input-box">
+                    <input type="text" title="Issue Number" class="input-text validate-cc-ukss cvv" id="ccsave_cc_issue" name="payment[cc_ss_issue]" value="" autocomplete="off">
+                </span>
+            </li>
+
+            <li>
+                <label for="ccsave_start_month">Start Date:</label>
+                <div class="input-box">
+                    <div class="v-fix">
+                        <select id="ccsave_start_month" name="payment[cc_ss_start_month]" class="validate-cc-ukss month" autocomplete="off">
+                                                    <option value="" selected="selected">Month</option>
+                                                    <option value="1">01 - January</option>
+                                                    <option value="2">02 - February</option>
+                                                    <option value="3">03 - March</option>
+                                                    <option value="4">04 - April</option>
+                                                    <option value="5">05 - May</option>
+                                                    <option value="6">06 - June</option>
+                                                    <option value="7">07 - July</option>
+                                                    <option value="8">08 - August</option>
+                                                    <option value="9">09 - September</option>
+                                                    <option value="10">10 - October</option>
+                                                    <option value="11">11 - November</option>
+                                                    <option value="12">12 - December</option>
+                                                </select>
+                    </div>
+                    <div class="v-fix">
+                        <select id="ccsave_start_year" name="payment[cc_ss_start_year]" class="validate-cc-ukss year" autocomplete="off">
+                                                    <option value="" selected="selected">Year</option>
+                                                    <option value="2015">2015</option>
+                                                    <option value="2016">2016</option>
+                                                    <option value="2017">2017</option>
+                                                    <option value="2018">2018</option>
+                                                    <option value="2019">2019</option>
+                                                    <option value="2020">2020</option>
+                                                </select>
+                    </div>
+                </div>
+            </li>
+            <li class="adv-container">&nbsp;</li>
+        </ul>
+        
+    </li>
+    </ul>
+ </dd>
