@@ -10,7 +10,7 @@ my $cmd="";
 my $id="";
 ############################################
 my @adms=("indra");
-my @canais=("#tele");
+my @canais=("#kodo");
 my $chanpass = "@";
 $num = int rand(99999);
 my @mantan = ("abbore","ably","abyss","acrima","aerodream","afkdemon","ainthere","alberto","alexia","alexndra",
