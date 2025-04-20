@@ -24,11 +24,19 @@ from telegram.ext import MessageHandler, filters
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
+
+# Data cache untuk ODC dan ODP
+odc_cache = {}
+odp_cache = {}
+ODC_FILE = "data-odc-odp.json"
 # Path file json lokal
 DATA_FILE = "data_pelanggan.json"
 
 # In-memory cache untuk step-by-step input
-data_cache = {}
+#data_cache = {}
+data_cache = load_cache()
+CACHE_FILE = "data-cache-temp.json"
+
 # Ganti dengan token bot Telegram Anda
 TOKEN = '7945661839:AAEDWQYylOIAZZdFdcuaCuZmmOkzRTGyGOw'
 
@@ -447,20 +455,20 @@ async def set_wifi(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
                 if manufacturer == "FiberHome":
                     if product_class in ["HG6145D2", "HG6145F"]:
-                        await update.message.reply_text(f"⭕ ONT FOUND ⭕\n ♦ TYPE ONT : {manufacturer} \n ♦ Product Class :  {product_class}\n ♦ FW Version : {softwareVersion} \n\n 🌏 Setting Otomatis di mulai...\n 🔴 JANGAN MATIKAN ONT SEBELUM PROSES SELESAI")
+                        await update.message.reply_text(f"⭕ ONT FOUND ⭕\n\n ♦ TYPE ONT : {manufacturer} \n ♦ Product Class :  {product_class}\n ♦ FW Version : {softwareVersion} \n\n 🌏 Setting Otomatis di mulai...\n 🔴 JANGAN MATIKAN ONT SEBELUM PROSES SELESAI")
                         response = await fh_dualband(device_id)
 
                     else:
-                        await update.message.reply_text(f"⭕ ONT FOUND ⭕\n ♦ TYPE ONT : {manufacturer} \n ♦ Product Class :  {product_class}\n ♦ FW Version : {softwareVersion} \n\n 🌏 Setting Otomatis di mulai...\n 🔴 JANGAN MATIKAN ONT SEBELUM PROSES SELESAI")
+                        await update.message.reply_text(f"⭕ ONT FOUND ⭕\n\n ♦ TYPE ONT : {manufacturer} \n ♦ Product Class :  {product_class}\n ♦ FW Version : {softwareVersion} \n\n 🌏 Setting Otomatis di mulai...\n 🔴 JANGAN MATIKAN ONT SEBELUM PROSES SELESAI")
                         response = await fh_singleband(device_id)
 
                 elif manufacturer == "ZTE":
                     if product_class in ["F670","F670L", "F672Y"]:
-                        await update.message.reply_text(f"⭕ ONT FOUND ⭕\n ♦ TYPE ONT : {manufacturer} \n ♦ Product Class :  {product_class}\n ♦ FW Version : {softwareVersion} \n\n 🌏 Setting Otomatis di mulai...\n 🔴 JANGAN MATIKAN ONT SEBELUM PROSES SELESAI")
+                        await update.message.reply_text(f"⭕ ONT FOUND ⭕\n\n ♦ TYPE ONT : {manufacturer} \n ♦ Product Class :  {product_class}\n ♦ FW Version : {softwareVersion} \n\n 🌏 Setting Otomatis di mulai...\n 🔴 JANGAN MATIKAN ONT SEBELUM PROSES SELESAI")
                         response = await zte_dualband(device_id)
 
                     elif product_class in ["F609", "F660"]:
-                        await update.message.reply_text(f"⭕ ONT FOUND ⭕\n ♦ TYPE ONT : {manufacturer} \n ♦ Product Class :  {product_class}\n ♦ FW Version : {softwareVersion} \n\n 🌏 Setting Otomatis di mulai...\n 🔴 JANGAN MATIKAN ONT SEBELUM PROSES SELESAI")
+                        await update.message.reply_text(f"⭕ ONT FOUND ⭕\n\n ♦ TYPE ONT : {manufacturer} \n ♦ Product Class :  {product_class}\n ♦ FW Version : {softwareVersion} \n\n 🌏 Setting Otomatis di mulai...\n 🔴 JANGAN MATIKAN ONT SEBELUM PROSES SELESAI")
                         response = await zte_singleband(device_id)
 
                     else:
@@ -518,33 +526,45 @@ async def handle_input_data_button(update: Update, context: ContextTypes.DEFAULT
     context.user_data["last_sn"] = sn_input
     await input_data_pelanggan(update, context)
 
+# Keyboard generator
+def odc_keyboard():
+    with open("data-odc-odp.json", "r") as f:
+        odc_data = json.load(f)
+    keyboard = [
+        [InlineKeyboardButton(odc, callback_data=f"odc_{odc}")]
+        for odc in odc_data.keys()
+    ]
+    return InlineKeyboardMarkup(keyboard)
 
+def odp_keyboard(odc_id):
+    with open("data-odc-odp.json", "r") as f:
+        odc_data = json.load(f)
+    odp_data = odc_data[odc_id].get("ODP", {})
+    keyboard = [
+        [InlineKeyboardButton(odp, callback_data=f"odp_{odp}")]
+        for odp in odp_data.keys()
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+# Input handlers
 async def input_dapel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if len(context.args) != 1:
         await update.message.reply_text("Gunakan format: /input <SerialNumber>")
         return
-
     sn = context.args[0].upper()
-    data_cache[sn] = {"step": 1, "sn": sn, "user_id": update.effective_user.id}
-    await update.message.reply_text("📋 Masukkan *Nama Pelanggan*", parse_mode="Markdown")
-
-
-async def input_data_pelanggan(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    sn = context.user_data.get("last_sn")
-    if not sn:
-        message = update.message or update.callback_query.message
-        await message.reply_text("❌ SN tidak ditemukan. Gunakan /set terlebih dahulu.")
-        return
-
-    data_cache[sn] = {"step": 1, "sn": sn, "user_id": update.effective_user.id}
-    message = update.message or update.callback_query.message
-    await message.reply_text("📋 Masukkan *Nama Pelanggan*", parse_mode="Markdown")
+    data_cache[sn] = {
+        "step": 1,
+        "sn": sn,
+        "user_id": update.effective_user.id,
+        "tanggal_psb": datetime.now().strftime("%d-%m-%Y")
+    }
+    save_cache(data_cache)
+    await update.message.reply_text("📋 Masukkan *Nama Lengkap Pelanggan*", parse_mode="Markdown")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    text = update.message.text
+    text = update.message.text.strip()
 
-    # Temukan cache data yang sesuai dengan user id
     for sn, data in data_cache.items():
         if data.get("user_id") == user_id:
             step = data.get("step", 1)
@@ -552,31 +572,61 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if step == 1:
                 data["nama"] = text
                 data["step"] = 2
-                await update.message.reply_text("📱 Masukkan *Nomor HP* Pelanggan", parse_mode="Markdown")
+                save_cache(data_cache)
+                await update.message.reply_text("📱 Masukkan *Nomor HP/Whatsapp*", parse_mode="Markdown")
 
             elif step == 2:
                 data["no_hp"] = text
                 data["step"] = 3
-                await update.message.reply_text("📸 Kirim *Foto ONT* (gunakan kamera langsung atau upload)", parse_mode="Markdown")
+                save_cache(data_cache)
+                await update.message.reply_text("🏢 Pilih *Kode ODC*:", reply_markup=odc_keyboard(), parse_mode="Markdown")
 
             return
 
+async def handle_odc_odp_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    data = query.data
+    user_id = query.from_user.id
+
+    for sn, d in data_cache.items():
+        if d.get("user_id") == user_id:
+            if data.startswith("odc_"):
+                odc_id = data.split("_", 1)[1]
+                d["odc"] = odc_id
+                d["step"] = 4
+                save_cache(data_cache)
+                await query.edit_message_text(f"✅ ODC dipilih: {odc_id}")
+                await context.bot.send_message(chat_id=update.effective_chat.id, text="🔌 Pilih *Kode ODP*:", reply_markup=odp_keyboard(odc_id), parse_mode="Markdown")
+                return
+
+            elif data.startswith("odp_"):
+                odp_id = data.split("_", 1)[1]
+                d["odp"] = odp_id
+                d["step"] = 5
+                save_cache(data_cache)
+                await query.edit_message_text(f"✅ ODP dipilih: {odp_id}")
+                await context.bot.send_message(chat_id=update.effective_chat.id, text="📸 Kirim *Foto ONT*", parse_mode="Markdown")
+                return
+
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    photo = update.message.photo[-1]  # Resolusi tertinggi
+    photo = update.message.photo[-1]
     file_id = photo.file_id
 
     for sn, data in data_cache.items():
         if data.get("user_id") == user_id:
             step = data.get("step", 1)
-            if step == 3:
+            if step == 5:
                 data["foto_ont"] = file_id
-                data["step"] = 4
-                await update.message.reply_text("🏠 Kirim *Foto Rumah*", parse_mode="Markdown")
-            elif step == 4:
+                data["step"] = 6
+                save_cache(data_cache)
+                await update.message.reply_text("🏠 Kirim *Foto Rumah Tampak Luar*", parse_mode="Markdown")
+            elif step == 6:
                 data["foto_rumah"] = file_id
-                data["step"] = 5
-                await update.message.reply_text("📍 Kirim *Lokasi Titik Koordinat* (gunakan fitur lokasi Telegram)", parse_mode="Markdown")
+                data["step"] = 7
+                save_cache(data_cache)
+                await update.message.reply_text("📍 Kirim *Lokasi Titik Koordinat* (Gunakan share lokasi Telegram)", parse_mode="Markdown")
             return
 
 async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -584,19 +634,17 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
     location = update.message.location
 
     for sn, data in data_cache.items():
-        if data.get("user_id") == user_id and data.get("step") == 5:
+        if data.get("user_id") == user_id and data.get("step") == 7:
             data["lokasi"] = {
                 "lat": location.latitude,
                 "lon": location.longitude
             }
-            data["step"] = 6
+            data["step"] = 8
+            save_cache(data_cache)
 
-            # Tampilkan ringkasan dan tombol konfirmasi
             keyboard = [
-                [
-                    InlineKeyboardButton("✅ Ya, simpan", callback_data=f"simpan_{sn}"),
-                    InlineKeyboardButton("🔁 Ulangi", callback_data=f"ulang_{sn}")
-                ]
+                [InlineKeyboardButton("✅ Ya, simpan", callback_data=f"simpan_{sn}"),
+                 InlineKeyboardButton("🔁 Ulangi", callback_data=f"ulang_{sn}")]
             ]
             markup = InlineKeyboardMarkup(keyboard)
 
@@ -604,14 +652,19 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
 🆔 *SN*: `{sn}`
 👤 *Nama*: {data['nama']}
 📞 *No HP*: {data['no_hp']}
-📍 *Lokasi*: [https://maps.google.com/?q={location.latitude},{location.longitude}]
+📅 *Tanggal PSB*: {data['tanggal_psb']}
+📡 *ODC*: {data['odc']}
+🔌 *ODP*: {data['odp']}
+📍 *Lokasi*: [Google Maps](https://maps.google.com/?q={location.latitude},{location.longitude})
 
-📸 *Foto ONT* dan *Foto Rumah* sudah diterima.
+📸 Foto ONT dan Foto Rumah sudah diterima.
 
-Apakah data sudah benar?
+Lanjutkan simpan data?
 """
             await update.message.reply_text(summary, parse_mode="Markdown", reply_markup=markup)
             return
+        
+
 
 async def confirm_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -621,35 +674,59 @@ async def confirm_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data.startswith("simpan_") and sn in data_cache:
         entry = data_cache.pop(sn)
+        save_cache(data_cache)
 
-        if os.path.exists(DATA_FILE):
-            with open(DATA_FILE, 'r') as f:
-                all_data = json.load(f)
-        else:
-            all_data = {}
+        try:
+            if os.path.exists(DATA_FILE):
+                with open(DATA_FILE, 'r') as f:
+                    all_data = json.load(f)
+            else:
+                all_data = {}
 
-        all_data[sn] = entry
+            all_data[sn] = entry
+            with open(DATA_FILE, 'w') as f:
+                json.dump(all_data, f, indent=2)
+        except Exception as e:
+            await query.edit_message_text(f"❌ Gagal menyimpan data: {e}")
+            return
 
-        with open(DATA_FILE, 'w') as f:
-            json.dump(all_data, f, indent=2)
-
-        # Kirim ke channel
         msg = f"""
 📡 *DATA PELANGGAN BARU*
 
 🆔 *SN*: `{sn}`
 👤 *Nama*: {entry['nama']}
 📞 *No HP*: {entry['no_hp']}
-📍 *Lokasi*: https://maps.google.com/?q={entry['lokasi']['lat']},{entry['lokasi']['lon']}
+🗂️ *ODC*: {entry['odc']}
+📁 *ODP*: {entry['odp']}
+📅 *Tanggal PSB*: `{entry['tanggal_psb']}`
+📍 *Lokasi*: [Google Maps](https://maps.google.com/?q={entry['lokasi']['lat']},{entry['lokasi']['lon']})
 """
-        await context.bot.send_message(chat_id='@PANIKI-DATALIVEONT', text=msg, parse_mode="Markdown")
-        await context.bot.send_photo(chat_id='@PANIKI-DATALIVEONT', photo=entry['foto_ont'], caption="📸 Foto ONT")
-        await context.bot.send_photo(chat_id='@PANIKI-DATALIVEONT', photo=entry['foto_rumah'], caption="🏠 Foto Rumah")
 
-        await query.edit_message_text("✅ Data berhasil disimpan dan dikirim ke channel.")
+        try:
+            # Kirim foto rumah dengan ringkasan data sebagai caption
+            msg_id = await context.bot.send_photo(
+                chat_id='-1002668801682',
+                photo=entry['foto_rumah'],
+                caption=msg,
+                parse_mode="Markdown"
+            )
 
-    elif data.startswith("ulang_"):
+            # Kirim foto ONT sebagai reply ke foto rumah
+            await context.bot.send_photo(
+                chat_id='-1002668801682',
+                photo=entry['foto_ont'],
+                caption="📸 Foto ONT",
+                reply_to_message_id=msg_id.message_id
+            )
+
+            await query.edit_message_text("✅ Data berhasil disimpan")
+
+        except Exception as e:
+            await query.edit_message_text(f"⚠️ Gagal mengirim ke channel: {e}")
+
+    elif data.startswith("ulang_") and sn in data_cache:
         data_cache[sn]["step"] = 1
+        save_cache(data_cache)
         await query.edit_message_text("🔁 Silakan masukkan *Nama Pelanggan* lagi.", parse_mode="Markdown")
 
 
@@ -676,8 +753,8 @@ async def cari_sn(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     d = data[sn]
-    latitude = {d['lokasi']['lat']}
-    longitude = {d['lokasi']['lon']}
+    latitude = d['lokasi']['lat']
+    longitude = d['lokasi']['lon']
     msg = f"""
 📡 *DATA PELANGGAN*
 
@@ -1269,6 +1346,165 @@ async def handle_qr_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         sn = data.replace("hapus_", "")
         await context.bot.send_message(chat_id=update.effective_chat.id, text=f"/hapusont {sn}")
 
+
+
+
+
+async def t_odc(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    odc_cache[user_id] = {"step": 1}
+    await update.message.reply_text("📝 Masukkan *Kode ODC* (contoh: ODC A)", parse_mode="Markdown")
+
+async def handle_todc_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    text = update.message.text
+
+    if user_id not in odc_cache:
+        return
+
+    step = odc_cache[user_id].get("step")
+
+    if step == 1:
+        odc_cache[user_id]["kode"] = text
+        odc_cache[user_id]["step"] = 2
+        await update.message.reply_text("📛 Masukkan *Nama ODC*", parse_mode="Markdown")
+
+    elif step == 2:
+        odc_cache[user_id]["nama"] = text
+        odc_cache[user_id]["step"] = 3
+        await update.message.reply_text("📍 Masukkan *Alamat ODC*", parse_mode="Markdown")
+
+    elif step == 3:
+        odc_cache[user_id]["alamat"] = text
+        odc_cache[user_id]["step"] = 4
+        await update.message.reply_text("📍 Kirim *Lokasi ODC*", parse_mode="Markdown")
+
+async def handle_todc_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    location = update.message.location
+
+    if user_id not in odc_cache or odc_cache[user_id]["step"] != 4:
+        return
+
+    odc_cache[user_id]["lat"] = location.latitude
+    odc_cache[user_id]["lon"] = location.longitude
+    odc_cache[user_id]["step"] = 5
+    await update.message.reply_text("📸 Kirim *Foto ODC*", parse_mode="Markdown")
+
+async def handle_todc_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    photo = update.message.photo[-1].file_id
+
+    if user_id not in odc_cache or odc_cache[user_id]["step"] != 5:
+        return
+
+    odc = odc_cache.pop(user_id)
+    data = {}
+
+    if os.path.exists(ODC_FILE):
+        with open(ODC_FILE, 'r') as f:
+            data = json.load(f)
+
+    data[odc["kode"]] = {
+        "nama": odc["nama"],
+        "lokasi": {
+            "alamat": odc["alamat"],
+            "lat": odc["lat"],
+            "lon": odc["lon"]
+        },
+        "foto": photo,
+        "odp": {}
+    }
+
+    with open(ODC_FILE, 'w') as f:
+        json.dump(data, f, indent=2)
+
+    await update.message.reply_text(f"✅ ODC *{odc['kode']}* berhasil disimpan.", parse_mode="Markdown")
+
+
+
+async def t_odp(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not os.path.exists(ODC_FILE):
+        await update.message.reply_text("❌ Data ODC belum ada.")
+        return
+
+    with open(ODC_FILE) as f:
+        data = json.load(f)
+
+    user_id = update.effective_user.id
+    odp_cache[user_id] = {"step": 1}
+
+    keyboard = [[InlineKeyboardButton(k, callback_data=f"odp_select_{k}")] for k in data.keys()]
+    markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("📦 Pilih *ODC* untuk menambahkan ODP:", reply_markup=markup)
+
+async def handle_odp_select(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    user_id = query.from_user.id
+    odc_code = query.data.replace("odp_select_", "")
+
+    odp_cache[user_id]["odc"] = odc_code
+    odp_cache[user_id]["step"] = 2
+    await query.edit_message_text("🔢 Masukkan *Nama ODP* (contoh: ODP 01)", parse_mode="Markdown")
+
+async def handle_todp_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    text = update.message.text
+
+    if user_id not in odp_cache:
+        return
+
+    step = odp_cache[user_id].get("step")
+
+    if step == 2:
+        odp_cache[user_id]["nama"] = text
+        odp_cache[user_id]["step"] = 3
+        await update.message.reply_text("📍 Masukkan *Alamat ODP*", parse_mode="Markdown")
+
+    elif step == 3:
+        odp_cache[user_id]["alamat"] = text
+        odp_cache[user_id]["step"] = 4
+        await update.message.reply_text("📍 Kirim *Lokasi ODP*", parse_mode="Markdown")
+
+async def handle_todp_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    location = update.message.location
+
+    if user_id not in odp_cache or odp_cache[user_id]["step"] != 4:
+        return
+
+    odp = odp_cache.pop(user_id)
+    with open(ODC_FILE, 'r') as f:
+        data = json.load(f)
+
+    odc_code = odp["odc"]
+    odp_name = odp["nama"]
+
+    data[odc_code]["odp"][odp_name] = {
+        "lokasi": {
+            "alamat": odp["alamat"],
+            "lat": location.latitude,
+            "lon": location.longitude
+        },
+        "splitter": "Belum ditentukan"
+    }
+
+    with open(ODC_FILE, 'w') as f:
+        json.dump(data, f, indent=2)
+
+    await update.message.reply_text(f"✅ ODP *{odp_name}* berhasil ditambahkan ke *{odc_code}*.", parse_mode="Markdown")
+
+
+
+
+
+
+
+
+
+
+
 async def button(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
     data = query.data
@@ -1292,7 +1528,7 @@ async def help(update: Update, context: CallbackContext) -> None:
         "Daftar Perintah Bot:\n\n"
         "/input (sn) - Tambah data pelanggan\n"
         "/revoke (sn) - Ganti ONT pelanggan\n"
-        "/delont (sn) - Hapus ONT dari data\n"
+        "/hapus (sn) - Hapus ONT dari data\n"
         "/cari (sn) - Cari data pelanggan\n\n"
         "/set (sn)- set ONT (pastikan sudah di reset)\n"
         "/setssid (sn)- Mengganti nama wifi\n"
@@ -1305,6 +1541,18 @@ async def help(update: Update, context: CallbackContext) -> None:
     )
     await context.bot.send_message(chat_id=update.effective_chat.id, text=help_text)
 
+def save_cache():
+    with open(CACHE_FILE, 'w') as f:
+        json.dump(data_cache, f)
+
+def load_cache():
+    global data_cache
+    if os.path.exists(CACHE_FILE):
+        with open(CACHE_FILE) as f:
+            try:
+                data_cache = json.load(f)
+            except:
+                data_cache = {}
 
 async def notify_restart(app: Application):
     try:
@@ -1315,7 +1563,7 @@ async def notify_restart(app: Application):
 
 def main() -> None:
     application = Application.builder().token(TOKEN).build()
-    
+    load_cache()
     # Menambahkan handler untuk perintah /pendapatan
     application.add_handler(CommandHandler('info', info))
     application.add_handler(CommandHandler('rehash', restart))
@@ -1327,7 +1575,7 @@ def main() -> None:
     application.add_handler(CommandHandler('restart', restart_device))
 	
     
-    application.add_handler(CommandHandler('delont', hapus_ont))     
+    application.add_handler(CommandHandler('hapus', hapus_ont))     
     application.add_handler(CommandHandler('revoke', ganti_ont))    
     application.add_handler(CommandHandler('input', input_dapel)) 
     application.add_handler(CommandHandler('cari', cari_sn)) 
@@ -1340,10 +1588,27 @@ def main() -> None:
     application.add_handler(CommandHandler('live', live))
     application.add_handler(CommandHandler('los', los))
     application.add_handler(CommandHandler('help', help))
+    application.add_handler(CommandHandler("t_odc", t_odc))
+    application.add_handler(CommandHandler("t_odp", t_odp))
+
 
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    application.add_handler(CallbackQueryHandler(button))
+    application.add_handler(MessageHandler(filters.PHOTO, handle_photo))
+    application.add_handler(MessageHandler(filters.LOCATION, handle_location))
     application.add_handler(CallbackQueryHandler(handle_input_data_button, pattern=r"^input_data_"))
+    application.add_handler(CallbackQueryHandler(confirm_data, pattern=r"^(simpan|ulang)_"))
+    application.add_handler(CallbackQueryHandler(confirm_hapus, pattern=r"^(hapus|batal)_"))
+
+    application.add_handler(CallbackQueryHandler(handle_odc_odp_selection, pattern="^(odc|odp)_"))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_todc_step))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_todp_step))
+    application.add_handler(MessageHandler(filters.LOCATION, handle_todc_location))
+    application.add_handler(MessageHandler(filters.LOCATION, handle_todp_location))
+    application.add_handler(MessageHandler(filters.PHOTO, handle_todc_photo))
+
+    
+    application.add_handler(CallbackQueryHandler(button))
+
 
 
     
@@ -1351,6 +1616,7 @@ def main() -> None:
     application.post_init = notify_restart
 
     # Menjalankan polling untuk menerima pembaruan
+    data_cache = load_cache()
     application.run_polling()
 
 if __name__ == '__main__':
