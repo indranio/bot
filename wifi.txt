@@ -1,0 +1,430 @@
+from telegram import Update
+from telegram.ext import ContextTypes
+from telegram.ext import CommandHandler
+import requests
+import re
+from config import GENIEACS_API
+
+
+async def setssid(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if len(context.args) != 2:
+        await update.message.reply_text("Gunakan format: /setssid <SN> <SSID>")
+        return
+
+    sn_input = context.args[0].upper()
+    ssid_value = context.args[1]
+
+    try:
+        res = requests.get(f"{GENIEACS_API}/devices")
+        devices = res.json()
+
+        for d in devices:
+            match = re.search(r'-([A-Z0-9]{12})$', d["_id"])
+            if match and match.group(1) == sn_input:
+                device_id = d["_id"]
+
+                payload = {
+                    "name": "setParameterValues",
+                    "parameterValues": [
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID", ssid_value, "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.SSID", ssid_value, "xsd:string"]
+                    ]
+                }
+
+                url = f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request"
+                r = requests.post(url, json=payload)
+
+                if r.status_code == 200:
+                    await update.message.reply_text(f"✅ SSID berhasil diubah ke `{ssid_value}` untuk `{sn_input}`.")
+                else:
+                    await update.message.reply_text(f"⚠️ Gagal set SSID. Status: {r.status_code} - {r.text}")
+                return
+
+        await update.message.reply_text("❌ Serial Number tidak ditemukan.")
+    except Exception as e:
+        await update.message.reply_text(f"⚠️ Error: {e}")
+
+
+async def fh_dualband(device_id):
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "addObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "addObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection"})
+
+    payload = {
+        "name": "setParameterValues",
+        "parameterValues": [
+
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.2.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.3.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.4.Enable", False, "xsd:boolean"],                        
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.6.Enable", False, "xsd:boolean"],                        
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.7.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.8.Enable", False, "xsd:boolean"],
+                        
+						["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID", "@paniki.id", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Channel", "6", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.BeaconType", "Basic", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.AutoChannelEnable", "false", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.X_FH_BandSteeringEnable", "1", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Enable", True, "xsd:boolean"],
+
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.SSID", "@paniki.id", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.Channel", "149", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.BeaconType", "Basic", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.AutoChannelEnable", "false", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.Enable", True, "xsd:boolean"],
+
+                        # WAN
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.Enable", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.Name", "2_OTHER_B_VID_20", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.ConnectionType", "PPPoE_Bridged", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.X_FH_ServiceList", "OTHER", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.NATEnabled", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.VLANEnable", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.VLANID", "20", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.X_FH_LanInterface", 
+                         "InternetGatewayDevice.LANDevice.1.WLANConfiguration.1,InternetGatewayDevice.LANDevice.1.WLANConfiguration.5,InternetGatewayDevice.LANDevice.1.LANEthernetInterfaceConfig.1", 
+                         "xsd:string"],
+
+                        # Disable DHCP
+                        ["InternetGatewayDevice.LANDevice.1.LANHostConfigManagement.DHCPServerEnable", False, "xsd:boolean"]
+                    ]
+    }
+
+    return requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request", json=payload)
+
+
+async def fh_singleband(device_id):
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "addObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "addObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection"})
+
+    payload = {
+        "name": "setParameterValues",
+        "parameterValues": [
+
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.2.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.3.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.4.Enable", False, "xsd:boolean"], 
+                        
+						["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID", "@paniki.id", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Channel", "6", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.BeaconType", "Basic", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.AutoChannelEnable", "false", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.X_FH_BandSteeringEnable", "1", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Enable", True, "xsd:boolean"],
+
+                        # WAN
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.Enable", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.Name", "2_OTHER_B_VID_20", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.ConnectionType", "PPPoE_Bridged", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.X_FH_ServiceList", "OTHER", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.NATEnabled", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.VLANEnable", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.VLANID", "20", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.X_FH_LanInterface", 
+                         "InternetGatewayDevice.LANDevice.1.WLANConfiguration.1,InternetGatewayDevice.LANDevice.1.LANEthernetInterfaceConfig.1", 
+                         "xsd:string"],
+
+                        # Disable DHCP
+                        ["InternetGatewayDevice.LANDevice.1.LANHostConfigManagement.DHCPServerEnable", False, "xsd:boolean"]
+                    ]
+    }
+
+    return requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request", json=payload)
+
+
+
+
+
+async def zte_dualband(device_id):
+
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.X_ZTE-COM_PortBinding.1"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.X_ZTE-COM_PortBinding.2"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.X_ZTE-COM_PortBinding.3"})
+    
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.2"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.2"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "addObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "addObject", "objectName": "InternetGatewayDevice.X_ZTE-COM_PortBinding"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "addObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection"})
+    
+    payload = {
+        "name": "setParameterValues",
+        "parameterValues": [
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.2.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.3.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.4.Enable", False, "xsd:boolean"],                        
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.6.Enable", False, "xsd:boolean"],                        
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.7.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.8.Enable", False, "xsd:boolean"],
+                        
+						["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID", "@paniki.id", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Channel", "6", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.BandWidth", "20Mhz", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.BeaconType", "None", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.AutoChannelEnable", "false", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.X_ZTE-COM_BandSteering.Enable", "0", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Enable", True, "xsd:boolean"],
+
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.SSID", "@paniki.id", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.Channel", "149", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.BandWidth", "20Mhz", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.BeaconType", "None", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.AutoChannelEnable", "false", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.Enable", True, "xsd:boolean"],
+
+                        # WAN
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.Enable", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.Name", "HS", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.ConnectionType", "PPPoE_Bridged", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.X_ZTE-COM_ServiceList", "INTERNET", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.NATEnabled", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.X_ZTE-COM_VLANEnable", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.X_ZTE-COM_VLANID", "20", "xsd:string"],
+						
+						["InternetGatewayDevice.X_ZTE-COM_PortBinding.1.LANInterface", 
+                         "InternetGatewayDevice.LANDevice.1.LANEthernetInterfaceConfig.1,InternetGatewayDevice.LANDevice.1.WLANConfiguration.1,InternetGatewayDevice.LANDevice.1.WLANConfiguration.5", 
+                         "xsd:string"],
+
+
+                        ["InternetGatewayDevice.X_ZTE-COM_PortBinding.1.WANInterface", 
+                         "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1",
+                         "xsd:string"],
+
+                        # Disable DHCP
+                        ["InternetGatewayDevice.LANDevice.1.LANHostConfigManagement.DHCPServerEnable", False, "xsd:boolean"]
+                    ]
+    }
+
+    return requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request", json=payload)
+
+
+
+
+
+
+
+
+
+async def zte_singleband(device_id):
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.X_ZTE-COM_PortBinding.1"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.X_ZTE-COM_PortBinding.2"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.2"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.2"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "addObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "addObject", "objectName": "InternetGatewayDevice.X_ZTE-COM_PortBinding"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "addObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection"})
+
+    payload = {
+        "name": "setParameterValues",
+        "parameterValues": [
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.2.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.3.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.4.Enable", False, "xsd:boolean"],
+                        
+						["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID", "@paniki.id", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Channel", "6", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.BandWidth", "20Mhz", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.BeaconType", "None", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.AutoChannelEnable", "false", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.X_ZTE-COM_BandSteering.Enable", "0", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Enable", True, "xsd:boolean"],
+
+                        # WAN
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.Enable", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.Name", "HS", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.ConnectionType", "PPPoE_Bridged", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.X_ZTE-COM_ServiceList", "INTERNET", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.NATEnabled", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.X_ZTE-COM_VLANEnable", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.X_ZTE-COM_VLANID", "20", "xsd:string"],
+						
+
+						["InternetGatewayDevice.X_ZTE-COM_PortBinding.1.LANInterface", 
+                         "InternetGatewayDevice.LANDevice.1.LANEthernetInterfaceConfig.1,InternetGatewayDevice.LANDevice.1.WLANConfiguration.1", 
+                         "xsd:string"],
+
+
+                        ["InternetGatewayDevice.X_ZTE-COM_PortBinding.1.WANInterface", 
+                         "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1",
+                         "xsd:string"],
+
+                        # Disable DHCP
+                        ["InternetGatewayDevice.LANDevice.1.LANHostConfigManagement.DHCPServerEnable", False, "xsd:boolean"]
+                    ]
+    }
+
+    return requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request", json=payload)
+
+
+
+
+
+
+
+
+
+async def set_wifi(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if len(context.args) != 1:
+        await update.message.reply_text("Gunakan format: /set <SerialNumber>")
+        return
+
+    sn_input = context.args[0].upper()
+    await update.message.reply_text("Tunggu, Saya cek dulu ya")
+    try:
+        res = requests.get(f"{GENIEACS_API}/devices")
+        devices = res.json()
+
+        for d in devices:
+            match = re.search(r'-([A-Z0-9]{12})$', d["_id"])
+            if match and match.group(1) == sn_input:
+                device_id = d["_id"]
+                manufacturer = d.get("_deviceId", {}).get("_Manufacturer", "N/A")
+                product_class = d.get("_deviceId", {}).get("_ProductClass", "N/A")
+                redaman_value = d.get('VirtualParameters', {}).get('redaman', {}).get('_value', "N/A")
+                ip_value = d.get('VirtualParameters', {}).get('IPTR069', {}).get('_value', "N/A")
+                admin_value = d.get('VirtualParameters', {}).get('WebSuperUsername', {}).get('_value', "admin")
+                pass_value = d.get('VirtualParameters', {}).get('superPassword', {}).get('_value', "N/A")
+                softwareVersion = d.get('VirtualParameters', {}).get('softwareVersion', {}).get('_value', "N/A")
+
+                last = d.get('_lastInform')
+                if not last:
+                    await update.message.reply_text(f"⚠️ Perangkat `{sn_input}` saat ini OFFLINE, tidak bisa dikonfigurasi.", parse_mode="Markdown")
+                    return
+
+                if manufacturer == "FiberHome":
+                    if product_class in ["HG6145D2", "HG6145F"]:
+                        await update.message.reply_text(f"⭕ ONT FOUND ⭕\n ♦ TYPE ONT : {manufacturer} \n ♦ Product Class :  {product_class}\n ♦ FW Version : {softwareVersion} \n\n 🌏 Setting Otomatis di mulai...\n 🔴 JANGAN MATIKAN ONT SEBELUM PROSES SELESAI")
+                        response = await fh_dualband(device_id)
+
+                    else:
+                        await update.message.reply_text(f"⭕ ONT FOUND ⭕\n ♦ TYPE ONT : {manufacturer} \n ♦ Product Class :  {product_class}\n ♦ FW Version : {softwareVersion} \n\n 🌏 Setting Otomatis di mulai...\n 🔴 JANGAN MATIKAN ONT SEBELUM PROSES SELESAI")
+                        response = await fh_singleband(device_id)
+
+                elif manufacturer == "ZTE":
+                    if product_class in ["F670","F670L", "F672Y"]:
+                        await update.message.reply_text(f"⭕ ONT FOUND ⭕\n ♦ TYPE ONT : {manufacturer} \n ♦ Product Class :  {product_class}\n ♦ FW Version : {softwareVersion} \n\n 🌏 Setting Otomatis di mulai...\n 🔴 JANGAN MATIKAN ONT SEBELUM PROSES SELESAI")
+                        response = await zte_dualband(device_id)
+
+                    elif product_class in ["F609", "F660"]:
+                        await update.message.reply_text(f"⭕ ONT FOUND ⭕\n ♦ TYPE ONT : {manufacturer} \n ♦ Product Class :  {product_class}\n ♦ FW Version : {softwareVersion} \n\n 🌏 Setting Otomatis di mulai...\n 🔴 JANGAN MATIKAN ONT SEBELUM PROSES SELESAI")
+                        response = await zte_singleband(device_id)
+
+                    else:
+                        await update.message.reply_text("❌ ONT ZTE Anda belum support auto konfigurasi.")
+                        return
+                else:
+                    await update.message.reply_text("❌ Maaf, ONT Anda belum support auto konfigurasi.")
+                    return
+
+                if response.status_code == 200:
+                    msg = f"""
+
+━━━━━━━━━━━━━━━━━━━━━
+  📡 *DEVICE SETTING SUCCESS* 📡
+━━━━━━━━━━━━━━━━━━━━━
+
+🆔 *ID*  :  `{device_id}`
+🔢 *Serial Number*    :   `{sn_input}`
+🏷️ *Type*                   :   `{manufacturer}`
+🛠️ *Product Class*  :   `{product_class}`
+📜 *FW Version*        :   `{softwareVersion}`
+
+📶 *RX Power*      :  `{redaman_value} dBm`
+🌐 *IP Address*    : `http://{ip_value}`
+👤 *Username*     :  `{admin_value}`
+🔒 *Password*       :  `{pass_value}`
+
+🕒 *Updated at*   :   `{datetime.now().strftime("%d %B %Y, %H:%M:%S")}`
+
+⚠️ *NOTE*  :  `Periksa Manual Untuk Kesempurnaan Setingan, Jika Gagal reset ONT dan lakukan set sekali lagi`
+
+━━━━━━━━━━━━━━━━━━━━━
+"""
+                    
+                    keyboard = [
+                        [InlineKeyboardButton("📝 Input Data Pelanggan", callback_data=f"input_data_{sn_input}")]
+                    ]
+                    reply_markup = InlineKeyboardMarkup(keyboard)
+                    await update.message.reply_text(msg, parse_mode="Markdown", reply_markup=reply_markup)
+                elif response.status_code == 500 and "No such device" in response.text:
+                    await update.message.reply_text(f"⚠️ Gagal: Perangkat `{sn_input}` sedang offline atau tidak merespons.")
+                else:
+                    await update.message.reply_text(f"⚠️ Gagal konfigurasi. Status: {response.status_code} - {response.text}")
+                return
+
+        await update.message.reply_text("❌ Serial Number tidak ditemukan. ")
+    except Exception as e:
+        await update.message.reply_text(f"⚠️ Error: {e}")
+
+
+async def handle_input_data_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    sn_input = query.data.split("_")[2]
+    context.user_data["last_sn"] = sn_input
+    await input_data_pelanggan(update, context)
+
+
+setssid_handler = CommandHandler("setssid", setssid)
+setssid_handler = CommandHandler("set", set_wifi)
