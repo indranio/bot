@@ -33,7 +33,7 @@ ODC_FILE = "data-odc-odp.json"
 DATA_FILE = "data_pelanggan.json"
 
 # In-memory cache untuk step-by-step input
-#data_cache = {}
+data_cache = {}
 data_cache = load_cache()
 CACHE_FILE = "data-cache-temp.json"
 
