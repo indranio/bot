@@ -1,1 +1,1362 @@
+import logging
+import requests
+import re
+import os
+import sys
+import subprocess
+import httpx
+import pytz
+import json
+import os
+from telegram import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
+
+from num2words import num2words
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, CallbackContext, CallbackQueryHandler, ContextTypes
+from librouteros import connect
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from datetime import datetime, timedelta
+from pyzbar.pyzbar import decode
+from PIL import Image
+from telegram.ext import MessageHandler, filters
+
+
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+
+# Path file json lokal
+DATA_FILE = "data_pelanggan.json"
+
+# In-memory cache untuk step-by-step input
+data_cache = {}
+# Ganti dengan token bot Telegram Anda
+TOKEN = '7945661839:AAEDWQYylOIAZZdFdcuaCuZmmOkzRTGyGOw'
+
+# Konfigurasi logging
+logging.basicConfig(
+    level=logging.INFO,  # Ganti dengan INFO jika tidak butuh terlalu detail
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[logging.StreamHandler()]
+)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logger = logging.getLogger(__name__)
+
+
+GENIEACS_API = "http://chr.polahi.my.id:333"  # ganti kalau beda
+GENIEACS_API_URL = 'http://chr.polahi.my.id:333/devices'
+
+
+async def fetch_devices():
+    async with httpx.AsyncClient() as client:
+        #logging.info(f"Fetching devices from {GENIEACS_API_URL}")
+        headers = {'Cache-Control': 'no-cache'}
+        response = await client.get(GENIEACS_API_URL, headers=headers)
+        if response.status_code == 404:
+            logging.error(f"Error 404: URL not found {GENIEACS_API_URL}")
+        response.raise_for_status()
+        return response.json()
+
+
+
+ADMIN_ID = [424296890]  # Ganti dengan user ID kamu
+
+ADM_ID = 424296890  # Ganti dengan user ID kamu
+async def restart(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    if user_id not in ADMIN_ID:
+        await update.message.reply_text("❌ Anda tidak memiliki izin untuk melakukan restart bot.")
+        return
+    
+    await update.message.reply_text("♻️ Bot sedang dimuat ulang...")
+    
+    # Restart dengan menjalankan ulang skrip Python saat ini
+    os.execv(sys.executable, ['python3'] + sys.argv)
+
+
+
+async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if len(context.args) != 1:
+        await update.message.reply_text("Gunakan format: /info <SerialNumber>")
+        return
+
+    sn = context.args[0].upper()
+    try:
+        r = requests.get(f"{GENIEACS_API}/devices")
+        devices = r.json()
+
+        for d in devices:
+            # Ambil SN dari _id (regex ambil 12 karakter terakhir)
+            match = re.search(r'-([A-Z0-9]{12})$', d["_id"])
+            if match:
+                device_sn = match.group(1)
+                if device_sn == sn:
+                    msg = f"📡 *Device Info:*\n\nID: `{d['_id']}`\nSN: `{device_sn}`"
+                    await update.message.reply_text(msg, parse_mode="Markdown")
+                    return
+
+        await update.message.reply_text("❌ Device tidak ditemukan.")
+    except Exception as e:
+        await update.message.reply_text(f"⚠️ Error: {e}")
+
+
+async def setssid(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if len(context.args) != 2:
+        await update.message.reply_text("Gunakan format: /setssid <SN> <SSID>")
+        return
+
+    sn_input = context.args[0].upper()
+    ssid_value = context.args[1]
+
+    try:
+        res = requests.get(f"{GENIEACS_API}/devices")
+        devices = res.json()
+
+        for d in devices:
+            match = re.search(r'-([A-Z0-9]{12})$', d["_id"])
+            if match and match.group(1) == sn_input:
+                device_id = d["_id"]
+
+                payload = {
+                    "name": "setParameterValues",
+                    "parameterValues": [
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID", ssid_value, "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.SSID", ssid_value, "xsd:string"]
+                    ]
+                }
+
+                url = f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request"
+                r = requests.post(url, json=payload)
+
+                if r.status_code == 200:
+                    await update.message.reply_text(f"✅ SSID berhasil diubah ke `{ssid_value}` untuk `{sn_input}`.")
+                else:
+                    await update.message.reply_text(f"⚠️ Gagal set SSID. Status: {r.status_code} - {r.text}")
+                return
+
+        await update.message.reply_text("❌ Serial Number tidak ditemukan.")
+    except Exception as e:
+        await update.message.reply_text(f"⚠️ Error: {e}")
+
+
+async def fh_dualband(device_id):
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "addObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "addObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection"})
+
+    payload = {
+        "name": "setParameterValues",
+        "parameterValues": [
+
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.2.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.3.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.4.Enable", False, "xsd:boolean"],                        
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.6.Enable", False, "xsd:boolean"],                        
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.7.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.8.Enable", False, "xsd:boolean"],
+                        
+						["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID", "@paniki.id", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Channel", "6", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.BeaconType", "Basic", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.AutoChannelEnable", "false", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.X_FH_BandSteeringEnable", "1", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Enable", True, "xsd:boolean"],
+
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.SSID", "@paniki.id", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.Channel", "149", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.BeaconType", "Basic", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.AutoChannelEnable", "false", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.Enable", True, "xsd:boolean"],
+
+                        # WAN
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.Enable", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.Name", "2_OTHER_B_VID_20", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.ConnectionType", "PPPoE_Bridged", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.X_FH_ServiceList", "OTHER", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.NATEnabled", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.VLANEnable", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.VLANID", "20", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.X_FH_LanInterface", 
+                         "InternetGatewayDevice.LANDevice.1.WLANConfiguration.1,InternetGatewayDevice.LANDevice.1.WLANConfiguration.5,InternetGatewayDevice.LANDevice.1.LANEthernetInterfaceConfig.1", 
+                         "xsd:string"],
+
+                        # Disable DHCP
+                        ["InternetGatewayDevice.LANDevice.1.LANHostConfigManagement.DHCPServerEnable", False, "xsd:boolean"]
+                    ]
+    }
+
+    return requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request", json=payload)
+
+
+async def fh_singleband(device_id):
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "addObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "addObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection"})
+
+    payload = {
+        "name": "setParameterValues",
+        "parameterValues": [
+
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.2.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.3.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.4.Enable", False, "xsd:boolean"], 
+                        
+						["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID", "@paniki.id", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Channel", "6", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.BeaconType", "Basic", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.AutoChannelEnable", "false", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.X_FH_BandSteeringEnable", "1", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Enable", True, "xsd:boolean"],
+
+                        # WAN
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.Enable", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.Name", "2_OTHER_B_VID_20", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.ConnectionType", "PPPoE_Bridged", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.X_FH_ServiceList", "OTHER", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.NATEnabled", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.VLANEnable", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.VLANID", "20", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.X_FH_LanInterface", 
+                         "InternetGatewayDevice.LANDevice.1.WLANConfiguration.1,InternetGatewayDevice.LANDevice.1.LANEthernetInterfaceConfig.1", 
+                         "xsd:string"],
+
+                        # Disable DHCP
+                        ["InternetGatewayDevice.LANDevice.1.LANHostConfigManagement.DHCPServerEnable", False, "xsd:boolean"]
+                    ]
+    }
+
+    return requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request", json=payload)
+
+
+
+
+
+async def zte_dualband(device_id):
+
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.X_ZTE-COM_PortBinding.1"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.X_ZTE-COM_PortBinding.2"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.X_ZTE-COM_PortBinding.3"})
+    
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.2"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.2"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "addObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "addObject", "objectName": "InternetGatewayDevice.X_ZTE-COM_PortBinding"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "addObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection"})
+    
+    payload = {
+        "name": "setParameterValues",
+        "parameterValues": [
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.2.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.3.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.4.Enable", False, "xsd:boolean"],                        
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.6.Enable", False, "xsd:boolean"],                        
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.7.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.8.Enable", False, "xsd:boolean"],
+                        
+						["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID", "@paniki.id", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Channel", "6", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.BandWidth", "20Mhz", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.BeaconType", "None", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.AutoChannelEnable", "false", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.X_ZTE-COM_BandSteering.Enable", "0", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Enable", True, "xsd:boolean"],
+
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.SSID", "@paniki.id", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.Channel", "149", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.BandWidth", "20Mhz", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.BeaconType", "None", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.AutoChannelEnable", "false", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.Enable", True, "xsd:boolean"],
+
+                        # WAN
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.Enable", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.Name", "HS", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.ConnectionType", "PPPoE_Bridged", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.X_ZTE-COM_ServiceList", "INTERNET", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.NATEnabled", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.X_ZTE-COM_VLANEnable", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.X_ZTE-COM_VLANID", "20", "xsd:string"],
+						
+						["InternetGatewayDevice.X_ZTE-COM_PortBinding.1.LANInterface", 
+                         "InternetGatewayDevice.LANDevice.1.LANEthernetInterfaceConfig.1,InternetGatewayDevice.LANDevice.1.WLANConfiguration.1,InternetGatewayDevice.LANDevice.1.WLANConfiguration.5", 
+                         "xsd:string"],
+
+
+                        ["InternetGatewayDevice.X_ZTE-COM_PortBinding.1.WANInterface", 
+                         "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1",
+                         "xsd:string"],
+
+                        # Disable DHCP
+                        ["InternetGatewayDevice.LANDevice.1.LANHostConfigManagement.DHCPServerEnable", False, "xsd:boolean"]
+                    ]
+    }
+
+    return requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request", json=payload)
+
+
+
+
+
+
+
+
+
+async def zte_singleband(device_id):
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.X_ZTE-COM_PortBinding.1"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.X_ZTE-COM_PortBinding.2"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.2"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "deleteObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.2"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "addObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "addObject", "objectName": "InternetGatewayDevice.X_ZTE-COM_PortBinding"})
+
+    requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request",
+                  json={"name": "addObject", "objectName": "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection"})
+
+    payload = {
+        "name": "setParameterValues",
+        "parameterValues": [
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.2.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.3.Enable", False, "xsd:boolean"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.4.Enable", False, "xsd:boolean"],
+                        
+						["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID", "@paniki.id", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Channel", "6", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.BandWidth", "20Mhz", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.BeaconType", "None", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.AutoChannelEnable", "false", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.X_ZTE-COM_BandSteering.Enable", "0", "xsd:string"],
+                        ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Enable", True, "xsd:boolean"],
+
+                        # WAN
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.Enable", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.Name", "HS", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.ConnectionType", "PPPoE_Bridged", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.X_ZTE-COM_ServiceList", "INTERNET", "xsd:string"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.NATEnabled", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.X_ZTE-COM_VLANEnable", True, "xsd:boolean"],
+                        ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.X_ZTE-COM_VLANID", "20", "xsd:string"],
+						
+
+						["InternetGatewayDevice.X_ZTE-COM_PortBinding.1.LANInterface", 
+                         "InternetGatewayDevice.LANDevice.1.LANEthernetInterfaceConfig.1,InternetGatewayDevice.LANDevice.1.WLANConfiguration.1", 
+                         "xsd:string"],
+
+
+                        ["InternetGatewayDevice.X_ZTE-COM_PortBinding.1.WANInterface", 
+                         "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1",
+                         "xsd:string"],
+
+                        # Disable DHCP
+                        ["InternetGatewayDevice.LANDevice.1.LANHostConfigManagement.DHCPServerEnable", False, "xsd:boolean"]
+                    ]
+    }
+
+    return requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request", json=payload)
+
+
+
+
+
+
+
+
+
+async def set_wifi(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if len(context.args) != 1:
+        await update.message.reply_text("Gunakan format: /set <SerialNumber>")
+        return
+
+    sn_input = context.args[0].upper()
+    await update.message.reply_text("Tunggu, Saya cek dulu ya")
+    try:
+        res = requests.get(f"{GENIEACS_API}/devices")
+        devices = res.json()
+
+        for d in devices:
+            match = re.search(r'-([A-Z0-9]{12})$', d["_id"])
+            if match and match.group(1) == sn_input:
+                device_id = d["_id"]
+                manufacturer = d.get("_deviceId", {}).get("_Manufacturer", "N/A")
+                product_class = d.get("_deviceId", {}).get("_ProductClass", "N/A")
+                redaman_value = d.get('VirtualParameters', {}).get('redaman', {}).get('_value', "N/A")
+                ip_value = d.get('VirtualParameters', {}).get('IPTR069', {}).get('_value', "N/A")
+                admin_value = d.get('VirtualParameters', {}).get('WebSuperUsername', {}).get('_value', "admin")
+                pass_value = d.get('VirtualParameters', {}).get('superPassword', {}).get('_value', "N/A")
+                softwareVersion = d.get('VirtualParameters', {}).get('softwareVersion', {}).get('_value', "N/A")
+
+                last = d.get('_lastInform')
+                if not last:
+                    await update.message.reply_text(f"⚠️ Perangkat `{sn_input}` saat ini OFFLINE, tidak bisa dikonfigurasi.", parse_mode="Markdown")
+                    return
+
+                if manufacturer == "FiberHome":
+                    if product_class in ["HG6145D2", "HG6145F"]:
+                        await update.message.reply_text(f"⭕ ONT FOUND ⭕\n ♦ TYPE ONT : {manufacturer} \n ♦ Product Class :  {product_class}\n ♦ FW Version : {softwareVersion} \n\n 🌏 Setting Otomatis di mulai...\n 🔴 JANGAN MATIKAN ONT SEBELUM PROSES SELESAI")
+                        response = await fh_dualband(device_id)
+
+                    else:
+                        await update.message.reply_text(f"⭕ ONT FOUND ⭕\n ♦ TYPE ONT : {manufacturer} \n ♦ Product Class :  {product_class}\n ♦ FW Version : {softwareVersion} \n\n 🌏 Setting Otomatis di mulai...\n 🔴 JANGAN MATIKAN ONT SEBELUM PROSES SELESAI")
+                        response = await fh_singleband(device_id)
+
+                elif manufacturer == "ZTE":
+                    if product_class in ["F670","F670L", "F672Y"]:
+                        await update.message.reply_text(f"⭕ ONT FOUND ⭕\n ♦ TYPE ONT : {manufacturer} \n ♦ Product Class :  {product_class}\n ♦ FW Version : {softwareVersion} \n\n 🌏 Setting Otomatis di mulai...\n 🔴 JANGAN MATIKAN ONT SEBELUM PROSES SELESAI")
+                        response = await zte_dualband(device_id)
+
+                    elif product_class in ["F609", "F660"]:
+                        await update.message.reply_text(f"⭕ ONT FOUND ⭕\n ♦ TYPE ONT : {manufacturer} \n ♦ Product Class :  {product_class}\n ♦ FW Version : {softwareVersion} \n\n 🌏 Setting Otomatis di mulai...\n 🔴 JANGAN MATIKAN ONT SEBELUM PROSES SELESAI")
+                        response = await zte_singleband(device_id)
+
+                    else:
+                        await update.message.reply_text("❌ ONT ZTE Anda belum support auto konfigurasi.")
+                        return
+                else:
+                    await update.message.reply_text("❌ Maaf, ONT Anda belum support auto konfigurasi.")
+                    return
+
+                if response.status_code == 200:
+                    msg = f"""
+
+━━━━━━━━━━━━━━━━━━━━━
+  📡 *DEVICE SETTING SUCCESS* 📡
+━━━━━━━━━━━━━━━━━━━━━
+
+🆔 *ID*  :  `{device_id}`
+🔢 *Serial Number*    :   `{sn_input}`
+🏷️ *Type*                   :   `{manufacturer}`
+🛠️ *Product Class*  :   `{product_class}`
+📜 *FW Version*        :   `{softwareVersion}`
+
+📶 *RX Power*      :  `{redaman_value} dBm`
+🌐 *IP Address*    : `http://{ip_value}`
+👤 *Username*     :  `{admin_value}`
+🔒 *Password*       :  `{pass_value}`
+
+🕒 *Updated at*   :   `{datetime.now().strftime("%d %B %Y, %H:%M:%S")}`
+
+⚠️ *NOTE*  :  `Periksa Manual Untuk Kesempurnaan Setingan, Jika Gagal reset ONT dan lakukan set sekali lagi`
+
+━━━━━━━━━━━━━━━━━━━━━
+"""
+                    
+                    keyboard = [
+                        [InlineKeyboardButton("📝 Input Data Pelanggan", callback_data=f"input_data_{sn_input}")]
+                    ]
+                    reply_markup = InlineKeyboardMarkup(keyboard)
+                    await update.message.reply_text(msg, parse_mode="Markdown", reply_markup=reply_markup)
+                elif response.status_code == 500 and "No such device" in response.text:
+                    await update.message.reply_text(f"⚠️ Gagal: Perangkat `{sn_input}` sedang offline atau tidak merespons.")
+                else:
+                    await update.message.reply_text(f"⚠️ Gagal konfigurasi. Status: {response.status_code} - {response.text}")
+                return
+
+        await update.message.reply_text("❌ Serial Number tidak ditemukan. ")
+    except Exception as e:
+        await update.message.reply_text(f"⚠️ Error: {e}")
+
+
+async def handle_input_data_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    sn_input = query.data.split("_")[2]
+    context.user_data["last_sn"] = sn_input
+    await input_data_pelanggan(update, context)
+
+
+async def input_dapel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if len(context.args) != 1:
+        await update.message.reply_text("Gunakan format: /input <SerialNumber>")
+        return
+
+    sn = context.args[0].upper()
+    data_cache[sn] = {"step": 1, "sn": sn, "user_id": update.effective_user.id}
+    await update.message.reply_text("📋 Masukkan *Nama Pelanggan*", parse_mode="Markdown")
+
+
+async def input_data_pelanggan(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    sn = context.user_data.get("last_sn")
+    if not sn:
+        message = update.message or update.callback_query.message
+        await message.reply_text("❌ SN tidak ditemukan. Gunakan /set terlebih dahulu.")
+        return
+
+    data_cache[sn] = {"step": 1, "sn": sn, "user_id": update.effective_user.id}
+    message = update.message or update.callback_query.message
+    await message.reply_text("📋 Masukkan *Nama Pelanggan*", parse_mode="Markdown")
+
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    text = update.message.text
+
+    # Temukan cache data yang sesuai dengan user id
+    for sn, data in data_cache.items():
+        if data.get("user_id") == user_id:
+            step = data.get("step", 1)
+
+            if step == 1:
+                data["nama"] = text
+                data["step"] = 2
+                await update.message.reply_text("📱 Masukkan *Nomor HP* Pelanggan", parse_mode="Markdown")
+
+            elif step == 2:
+                data["no_hp"] = text
+                data["step"] = 3
+                await update.message.reply_text("📸 Kirim *Foto ONT* (gunakan kamera langsung atau upload)", parse_mode="Markdown")
+
+            return
+
+async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    photo = update.message.photo[-1]  # Resolusi tertinggi
+    file_id = photo.file_id
+
+    for sn, data in data_cache.items():
+        if data.get("user_id") == user_id:
+            step = data.get("step", 1)
+            if step == 3:
+                data["foto_ont"] = file_id
+                data["step"] = 4
+                await update.message.reply_text("🏠 Kirim *Foto Rumah*", parse_mode="Markdown")
+            elif step == 4:
+                data["foto_rumah"] = file_id
+                data["step"] = 5
+                await update.message.reply_text("📍 Kirim *Lokasi Titik Koordinat* (gunakan fitur lokasi Telegram)", parse_mode="Markdown")
+            return
+
+async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    location = update.message.location
+
+    for sn, data in data_cache.items():
+        if data.get("user_id") == user_id and data.get("step") == 5:
+            data["lokasi"] = {
+                "lat": location.latitude,
+                "lon": location.longitude
+            }
+            data["step"] = 6
+
+            # Tampilkan ringkasan dan tombol konfirmasi
+            keyboard = [
+                [
+                    InlineKeyboardButton("✅ Ya, simpan", callback_data=f"simpan_{sn}"),
+                    InlineKeyboardButton("🔁 Ulangi", callback_data=f"ulang_{sn}")
+                ]
+            ]
+            markup = InlineKeyboardMarkup(keyboard)
+
+            summary = f"""
+🆔 *SN*: `{sn}`
+👤 *Nama*: {data['nama']}
+📞 *No HP*: {data['no_hp']}
+📍 *Lokasi*: [https://maps.google.com/?q={location.latitude},{location.longitude}]
+
+📸 *Foto ONT* dan *Foto Rumah* sudah diterima.
+
+Apakah data sudah benar?
+"""
+            await update.message.reply_text(summary, parse_mode="Markdown", reply_markup=markup)
+            return
+
+async def confirm_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    data = query.data
+    sn = data.split("_")[1]
+
+    if data.startswith("simpan_") and sn in data_cache:
+        entry = data_cache.pop(sn)
+
+        if os.path.exists(DATA_FILE):
+            with open(DATA_FILE, 'r') as f:
+                all_data = json.load(f)
+        else:
+            all_data = {}
+
+        all_data[sn] = entry
+
+        with open(DATA_FILE, 'w') as f:
+            json.dump(all_data, f, indent=2)
+
+        # Kirim ke channel
+        msg = f"""
+📡 *DATA PELANGGAN BARU*
+
+🆔 *SN*: `{sn}`
+👤 *Nama*: {entry['nama']}
+📞 *No HP*: {entry['no_hp']}
+📍 *Lokasi*: https://maps.google.com/?q={entry['lokasi']['lat']},{entry['lokasi']['lon']}
+"""
+        await context.bot.send_message(chat_id='@PANIKI-DATALIVEONT', text=msg, parse_mode="Markdown")
+        await context.bot.send_photo(chat_id='@PANIKI-DATALIVEONT', photo=entry['foto_ont'], caption="📸 Foto ONT")
+        await context.bot.send_photo(chat_id='@PANIKI-DATALIVEONT', photo=entry['foto_rumah'], caption="🏠 Foto Rumah")
+
+        await query.edit_message_text("✅ Data berhasil disimpan dan dikirim ke channel.")
+
+    elif data.startswith("ulang_"):
+        data_cache[sn]["step"] = 1
+        await query.edit_message_text("🔁 Silakan masukkan *Nama Pelanggan* lagi.", parse_mode="Markdown")
+
+
+
+
+async def cari_sn(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    if len(context.args) != 1:
+        await update.message.reply_text("Gunakan format: /cari <SerialNumber>")
+        return
+    
+    message_id = update.message.message_id
+
+    sn = context.args[0].upper()
+    if not os.path.exists(DATA_FILE):
+        await update.message.reply_text("❌ Belum ada data yang tersimpan.")
+        return
+
+    with open(DATA_FILE, 'r') as f:
+        data = json.load(f)
+
+    if sn not in data:
+        await update.message.reply_text("❌ Data untuk SN tersebut tidak ditemukan.")
+        return
+
+    d = data[sn]
+    latitude = {d['lokasi']['lat']}
+    longitude = {d['lokasi']['lon']}
+    msg = f"""
+📡 *DATA PELANGGAN*
+
+🆔 *SN*: `{sn}`
+👤 *Nama*: {d['nama']}
+📞 *No HP*: {d['no_hp']}
+📍 *Lokasi*: https://maps.google.com/?q={d['lokasi']['lat']},{d['lokasi']['lon']}
+"""
+    
+
+    msg2 = f"""
+📡 *DATA PELANGGAN*
+
+🆔 *SN*: `{sn}`
+👤 *Nama*: {d['nama']}
+📞 *No HP*: {d['no_hp']}
+📍 *Lokasi*: https://maps.google.com/?q={d['lokasi']['lat']},{d['lokasi']['lon']}
+"""
+    #await update.message.reply_text(msg, parse_mode="Markdown")
+    await context.bot.send_photo(chat_id=update.effective_chat.id, photo=d['foto_rumah'], caption=msg, reply_to_message_id=message_id)
+    await context.bot.send_photo(chat_id=update.effective_chat.id, photo=d['foto_ont'], caption=msg2, reply_to_message_id=message_id)
+    await context.bot.send_location(chat_id=update.effective_chat.id, 
+                                    latitude=float(latitude), 
+                                    longitude=float(longitude),
+                                    reply_to_message_id=message_id
+                                    )
+
+
+
+
+
+async def ganti_ont(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if len(context.args) != 1:
+        await update.message.reply_text("Gunakan format: /gantiont <SerialNumberLama>")
+        return
+
+    sn_lama = context.args[0].upper()
+    if not os.path.exists(DATA_FILE):
+        await update.message.reply_text("❌ Belum ada data yang tersimpan.")
+        return
+
+    with open(DATA_FILE, 'r') as f:
+        data = json.load(f)
+
+    if sn_lama not in data:
+        await update.message.reply_text("❌ Data untuk SN lama tidak ditemukan.")
+        return
+
+    context.user_data['ganti_sn_lama'] = sn_lama
+    await update.message.reply_text("🆕 Masukkan *Serial Number ONT pengganti*", parse_mode="Markdown")
+
+async def handle_ganti_sn(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    sn_lama = context.user_data.get('ganti_sn_lama')
+    sn_baru = update.message.text.strip().upper()
+
+    if not sn_lama or not sn_baru:
+        await update.message.reply_text("❌ Terjadi kesalahan. Coba lagi.")
+        return
+
+    with open(DATA_FILE, 'r') as f:
+        data = json.load(f)
+
+    data[sn_baru] = data.pop(sn_lama)
+
+    with open(DATA_FILE, 'w') as f:
+        json.dump(data, f, indent=2)
+
+    await update.message.reply_text(f"✅ Data berhasil dipindahkan dari `{sn_lama}` ke `{sn_baru}`", parse_mode="Markdown")
+    context.user_data.pop('ganti_sn_lama', None)
+
+
+async def hapus_ont(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if len(context.args) != 1:
+        await update.message.reply_text("Gunakan format: /hapusont <SerialNumber>")
+        return
+
+    sn = context.args[0].upper()
+    if not os.path.exists(DATA_FILE):
+        await update.message.reply_text("❌ File data tidak ditemukan.")
+        return
+
+    with open(DATA_FILE, 'r') as f:
+        data = json.load(f)
+
+    if sn not in data:
+        await update.message.reply_text("❌ SN tidak ditemukan dalam data.")
+        return
+
+    d = data[sn]
+    msg = f"""
+⚠️ Anda akan menghapus data berikut:
+
+🆔 *SN*: `{sn}`
+👤 *Nama*: {d['nama']}
+📞 *No HP*: {d['no_hp']}
+📍 *Lokasi*: https://maps.google.com/?q={d['lokasi']['lat']},{d['lokasi']['lon']}
+
+Lanjutkan penghapusan?
+"""
+    keyboard = [
+        [
+            InlineKeyboardButton("✅ Ya, hapus", callback_data=f"hapus_{sn}"),
+            InlineKeyboardButton("❌ Batal", callback_data="batal_hapus")
+        ]
+    ]
+    markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text(msg, parse_mode="Markdown", reply_markup=markup)
+
+async def confirm_hapus(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    data = query.data
+
+    if data.startswith("hapus_"):
+        sn = data.split("_")[1]
+        if os.path.exists(DATA_FILE):
+            with open(DATA_FILE, 'r') as f:
+                all_data = json.load(f)
+
+            if sn in all_data:
+                del all_data[sn]
+                with open(DATA_FILE, 'w') as f:
+                    json.dump(all_data, f, indent=2)
+
+                await query.edit_message_text(f"🗑️ Data untuk SN `{sn}` berhasil dihapus.", parse_mode="Markdown")
+            else:
+                await query.edit_message_text("❌ Data tidak ditemukan.")
+
+    elif data == "batal_hapus":
+        await query.edit_message_text("❎ Penghapusan dibatalkan.")
+
+
+
+
+
+
+
+async def factoryreset(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if len(context.args) != 1:
+        await update.message.reply_text("Gunakan format: /format <SerialNumber>")
+        return
+
+    sn_input = context.args[0].upper()
+    await update.message.reply_text("🧹 Sedang mengirim perintah Factory Reset...")
+
+    try:
+        res = requests.get(f"{GENIEACS_API}/devices")
+        devices = res.json()
+
+        for d in devices:
+            match = re.search(r'-([A-Z0-9]{12})$', d["_id"])
+            if match and match.group(1) == sn_input:
+                device_id = d["_id"]
+
+                r = requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request", json={"name": "factoryReset"})
+
+                if r.status_code == 200:
+                    await update.message.reply_text(f"✅ Factory Reset berhasil dikirim ke `{sn_input}`.", parse_mode="Markdown")
+                else:
+                    await update.message.reply_text(f"⚠️ Gagal kirim perintah reset. Status: {r.status_code} - {r.text}")
+                return
+
+        await update.message.reply_text("❌ Serial Number tidak ditemukan.")
+    except Exception as e:
+        await update.message.reply_text(f"⚠️ Error: {e}")
+
+
+async def restart_device(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if len(context.args) != 1:
+        await update.message.reply_text("Gunakan format: /restart <SerialNumber>")
+        return
+
+    sn_input = context.args[0].upper()
+    await update.message.reply_text("🔄 Mengirim perintah Restart...")
+
+    try:
+        res = requests.get(f"{GENIEACS_API}/devices")
+        devices = res.json()
+
+        for d in devices:
+            match = re.search(r'-([A-Z0-9]{12})$', d["_id"])
+            if match and match.group(1) == sn_input:
+                device_id = d["_id"]
+
+                r = requests.post(f"{GENIEACS_API}/devices/{device_id}/tasks?connection_request", json={"name": "reboot"})
+
+                if r.status_code == 200:
+                    await update.message.reply_text(f"✅ Perangkat `{sn_input}` sedang direstart.", parse_mode="Markdown")
+                else:
+                    await update.message.reply_text(f"⚠️ Gagal restart. Status: {r.status_code} - {r.text}")
+                return
+
+        await update.message.reply_text("❌ Serial Number tidak ditemukan.")
+    except Exception as e:
+        await update.message.reply_text(f"⚠️ Error: {e}")
+
+
+
+async def send_large_message(chat_id: int, message: str, context: CallbackContext) -> None:
+    MAX_MESSAGE_LENGTH = 4096
+    while len(message) > MAX_MESSAGE_LENGTH:
+        split_point = message.rfind('\n', 0, MAX_MESSAGE_LENGTH)
+        if split_point == -1:
+            split_point = MAX_MESSAGE_LENGTH
+        await context.bot.send_message(chat_id=chat_id, text=message[:split_point])
+        message = message[split_point:].lstrip()
+    await context.bot.send_message(chat_id=chat_id, text=message)
+
+
+async def redaman(update: Update, context: CallbackContext) -> None:
+    if len(context.args) == 1:
+        sn = context.args[0]
+        device_found = False  # Inisialisasi variabel device_found di luar blok try
+        message_id = update.message.message_id
+        try:
+            data = await fetch_devices()
+            redaman_value = "N/A"  # Default value if the serial number is not found
+            status = "N/A"
+            current_time = datetime.now(pytz.utc)  # Waktu saat ini dengan timezone UTC
+
+            for item in data:
+                device_id = item.get('_deviceId', {})
+                if device_id.get('_SerialNumber') == sn:
+                    device_found = True
+                    redaman_value = item.get('VirtualParameters', {}).get('redaman', {}).get('_value', "N/A")
+                    timestamp_value = item.get('VirtualParameters', {}).get('redaman', {}).get('_timestamp', "N/A")
+                    last = item.get('_timestamp', "N/A")  # Ambil nilai _lastInform dari item
+                    break  # Stop searching after finding the matching serial number
+                
+
+            if not device_found:
+                await update.message.reply_text("❌ Serial Number Tidak Ditemukan Di ACS ❌", reply_to_message_id=message_id)
+                return  # Menghentikan eksekusi jika SN tidak ditemukan    
+
+            if timestamp_value:
+                dt = datetime.strptime(timestamp_value, "%Y-%m-%dT%H:%M:%S.%fZ")
+                readable_time = dt.strftime("%d %B %Y, %H:%M:%S")
+
+            if last != "N/A":
+                lastinform_time = datetime.fromisoformat(last.replace("Z", "+00:00"))
+                lastinform_time = lastinform_time.astimezone(pytz.utc)  # Mengonversi ke waktu UTC
+                time_diff = current_time - lastinform_time
+
+                # Menentukan apakah perangkat LIVE atau LOSS
+                if time_diff <= timedelta(minutes=10):
+                    status = "🟢"
+                    status2 = "𝐋𝐈𝐕𝐄"
+                else:
+                    status = "🔴"
+                    status2 = "𝐋𝐎𝐒𝐒"
+
+            final_result = (
+                f"{status}  ONT Status  :   {status2} {status}\n\n"
+                f"◍  SN  :  {sn}\n"
+                f"◍  Redaman  :  {redaman_value}"
+            )
+            await update.message.reply_text(final_result, reply_to_message_id=message_id)
+
+        except httpx.RequestError as e:
+            logging.error(f"An error occurred: {e}")
+            await update.message.reply_text('Gagal mengambil data perangkat dari GenieACS.', reply_to_message_id=message_id)
+    else:
+        await update.message.reply_text("Gunakan format: /daman <SerialNumber>", reply_to_message_id=message_id)
+
+
+async def devices(update: Update, context: CallbackContext) -> None:
+    try:
+        devices = await fetch_devices()
+        if devices:
+            bagus = []
+            baik = []
+            buruk = []
+            live_count = 0
+            los_count = 0
+
+            # Dapatkan waktu saat ini dalam UTC
+            utc_now = datetime.now(pytz.utc)
+            iso_format_with_z = utc_now.isoformat().replace("+00:00", "Z")
+            current_time = utc_now
+
+            for device in devices:
+                tags = ", ".join(device.get("_tags", ["N/A"]))
+                virtual_params = device.get("VirtualParameters", {})
+                device_id = device.get("_deviceId", {})
+                serial_number = device_id.get("_SerialNumber", "N/A")
+                redaman = virtual_params.get("redaman", {}).get("_value", "N/A")
+                
+                
+                last = device.get("_lastInform", "N/A")
+                if last != "N/A":
+                    lastinform_time = datetime.fromisoformat(last.replace("Z", "+00:00"))
+                    time_diff = current_time - lastinform_time
+                else:
+                    time_diff = timedelta(minutes=11)  # Anggap LOS jika lastinform tidak ada
+                
+                # Menentukan apakah perangkat LOS
+                if time_diff > timedelta(minutes=10):
+                    los_count += 1
+                else:
+                    live_count += 1
+
+                try:
+                    redaman_value = float(redaman)
+                except ValueError:
+                    redaman_value = None
+
+                result = f"{tags} - {serial_number} {redaman}dBm "
+
+                if redaman_value is not None:
+                    if -19 < redaman_value <= -12:
+                        bagus.append(result)
+                    elif -26 <= redaman_value <= -19:
+                        baik.append(result)
+                    else:
+                        buruk.append(result)
+
+            total_devices = len(devices)
+            total_bagus = len(bagus)
+            total_baik = len(baik)
+            total_buruk = len(buruk)
+
+            final_result = (
+                f"🏢   CEK ONT   🏢\n"
+                f"•   TOTAL ONT = {total_devices}\n"
+                f"•   REDAMAN BAGUS = {total_bagus}\n"
+                f"•   REDAMAN BAIK = {total_baik}\n"
+                f"•   REDAMAN BURUK = {total_buruk}\n"
+                f"•   TOTAL LIVE = {live_count}\n"
+                f"•   TOTAL LOS = {los_count}"
+            )
+
+            keyboard = [
+                [InlineKeyboardButton("◉ Bagus", callback_data='bagus'),
+                InlineKeyboardButton("◉ Baik", callback_data='baik'),
+                InlineKeyboardButton("◉ Buruk", callback_data='buruk')],
+                [InlineKeyboardButton("🟢 LIVE", callback_data='live'),
+                InlineKeyboardButton("🔴 LOS", callback_data='los')],
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+
+            await update.message.reply_text(final_result, reply_markup=reply_markup)
+        else:
+            await update.message.reply_text("Tidak ada perangkat ditemukan.")
+    except httpx.RequestError as e:
+        logging.error(f"An error occurred: {e}")
+        await update.message.reply_text('Gagal mengambil data perangkat dari GenieACS.')
+
+
+async def bagus(update: Update, context: CallbackContext) -> None:
+    try:
+        devices = await fetch_devices()
+        if devices:
+            bagus = []
+
+            for device in devices:
+                tags = ", ".join(device.get("_tags", ["N/A"]))
+                virtual_params = device.get("VirtualParameters", {})
+                device_id = device.get("_deviceId", {})
+                serial_number = device_id.get("_SerialNumber", "N/A")
+                redaman = virtual_params.get("redaman", {}).get("_value", "N/A")
+
+                try:
+                    redaman_value = float(redaman)
+                except ValueError:
+                    redaman_value = None
+
+                if redaman_value is not None and -19 < redaman_value <= -12:
+                    result = f"{tags} - {serial_number} {redaman}dBm"
+                    bagus.append(result)
+
+            final_result = "\n".join(bagus) if bagus else "Tidak ada perangkat dengan redaman Bagus."
+            await send_large_message(update.effective_chat.id, final_result, context)
+        else:
+            await update.message.reply_text("Tidak ada perangkat ditemukan.")
+    except httpx.RequestError as e:
+        logging.error(f"An error occurred: {e}")
+        await update.message.reply_text('Gagal mengambil data perangkat dari GenieACS.')
+
+async def baik(update: Update, context: CallbackContext) -> None:
+    try:
+        devices = await fetch_devices()
+        if devices:
+            baik = []
+
+            for device in devices:
+                tags = ", ".join(device.get("_tags", ["N/A"]))
+                virtual_params = device.get("VirtualParameters", {})
+                device_id = device.get("_deviceId", {})
+                serial_number = device_id.get("_SerialNumber", "N/A")
+                redaman = virtual_params.get("redaman", {}).get("_value", "N/A")
+
+                try:
+                    redaman_value = float(redaman)
+                except ValueError:
+                    redaman_value = None
+
+                if redaman_value is not None and -26 <= redaman_value <= -19:
+                    result = f"{tags} - {serial_number} {redaman}dBm"
+                    baik.append(result)
+
+            final_result = "\n".join(baik) if baik else "Tidak ada perangkat dengan redaman baik."
+            await send_large_message(update.effective_chat.id, final_result, context)
+        else:
+            await update.message.reply_text("Tidak ada perangkat ditemukan.")
+    except httpx.RequestError as e:
+        logging.error(f"An error occurred: {e}")
+        await update.message.reply_text('Gagal mengambil data perangkat dari GenieACS.')
+
+async def buruk(update: Update, context: CallbackContext) -> None:
+    try:
+        devices = await fetch_devices()
+        if devices:
+            buruk = []
+
+            for device in devices:
+                tags = ", ".join(device.get("_tags", ["N/A"]))
+                virtual_params = device.get("VirtualParameters", {})
+                device_id = device.get("_deviceId", {})
+                serial_number = device_id.get("_SerialNumber", "N/A")
+                redaman = virtual_params.get("redaman", {}).get("_value", "N/A")
+
+                try:
+                    redaman_value = float(redaman)
+                except ValueError:
+                    redaman_value = None
+
+                if redaman_value is not None and redaman_value < -26:
+                    result = f"{tags} - {serial_number} {redaman}dBm"
+                    buruk.append(result)
+
+            final_result = "\n".join(buruk) if buruk else "Tidak ada perangkat dengan redaman buruk."
+            await send_large_message(update.effective_chat.id, final_result, context)
+        else:
+            await update.message.reply_text("Tidak ada perangkat ditemukan.")
+    except httpx.RequestError as e:
+        logging.error(f"An error occurred: {e}")
+        await update.message.reply_text('Gagal mengambil data perangkat dari GenieACS.')
+
+async def live(update: Update, context: CallbackContext) -> None:
+    try:
+        devices = await fetch_devices()
+        if devices:
+            live_devices = []
+
+            # Dapatkan waktu saat ini dalam UTC
+            utc_now = datetime.now(pytz.utc)
+            iso_format_with_z = utc_now.isoformat().replace("+00:00", "Z")
+            current_time = utc_now
+
+            for device in devices:
+                tags = ", ".join(device.get("_tags", ["N/A"]))
+                virtual_params = device.get("VirtualParameters", {})
+                device_id = device.get("_deviceId", {})
+                serial_number = device_id.get("_SerialNumber", "N/A")
+                #ceklive = virtual_params.get("CekLive", {}).get("_value", "N/A")
+                last = device.get("_lastInform", "N/A")
+
+                if last != "N/A":
+                    lastinform_time = datetime.fromisoformat(last.replace("Z", "+00:00"))
+                    time_diff = current_time - lastinform_time
+
+                    # Menentukan apakah perangkat LIVE
+                    if time_diff <= timedelta(minutes=10):
+                        result = f" 🟢 {tags} \n ๏  SN : {serial_number} \n"
+                        live_devices.append(result)
+
+            final_result = "\n".join(live_devices) if live_devices else "Tidak ada perangkat dengan status LIVE."
+            await send_large_message(update.effective_chat.id, final_result, context)
+        else:
+            await update.message.reply_text("Tidak ada perangkat ditemukan.")
+    except httpx.RequestError as e:
+        logging.error(f"An error occurred: {e}")
+        await update.message.reply_text('Gagal mengambil data perangkat dari GenieACS.')
+
+
+async def los(update: Update, context: CallbackContext) -> None:
+    try:
+        devices = await fetch_devices()
+        if devices:
+            los_devices = []
+            # Dapatkan waktu saat ini dalam UTC
+            utc_now = datetime.now(pytz.utc)
+            iso_format_with_z = utc_now.isoformat().replace("+00:00", "Z")
+            current_time = utc_now
+
+            for device in devices:
+                tags = ", ".join(device.get("_tags", ["N/A"]))
+                virtual_params = device.get("VirtualParameters", {})
+                device_id = device.get("_deviceId", {})
+                serial_number = device_id.get("_SerialNumber", "N/A")
+                last = device.get("_lastInform", "N/A")
+                
+                if last != "N/A":
+                    # Parsing lastinform menjadi datetime
+                    lastinform_time = datetime.fromisoformat(last.replace("Z", "+00:00"))
+
+                    # Cek perbedaan waktu
+                    time_diff = current_time - lastinform_time
+                    
+                    # Jika perbedaan waktu lebih dari 10 menit
+                    if time_diff > timedelta(minutes=10):
+                        result = f" 🔴 {tags}\n ๏  SN : {serial_number} \n"
+                        los_devices.append(result)
+
+            final_result = "\n".join(los_devices) if los_devices else "Tidak ada perangkat dengan status LOS."
+            await send_large_message(update.effective_chat.id, final_result, context)
+        else:
+            await update.message.reply_text("Tidak ada perangkat ditemukan.")
+    except httpx.RequestError as e:
+        logging.error(f"An error occurred: {e}")
+        await update.message.reply_text('Gagal mengambil data perangkat dari GenieACS.')
+
+
+
+
+qr_waiting_users = set()
+
+async def qr_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    qr_waiting_users.add(update.effective_user.id)
+    await update.message.reply_text("📷 Kirim gambar QR Code yang berisi SN ONT.")
+
+async def handle_qr(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    if user_id not in qr_waiting_users:
+        return
+
+    photo = update.message.photo[-1]
+    photo_file = await photo.get_file()
+    temp_path = f"/tmp/qr_{update.message.message_id}.jpg"
+    await photo_file.download_to_drive(temp_path)
+
+    try:
+        img = Image.open(temp_path)
+        decoded_objs = decode(img)
+
+        for obj in decoded_objs:
+            sn = obj.data.decode("utf-8").strip().upper()
+            msg = f"""
+📡 *HASIL PEMINDAIAN QR CODE*
+
+🆔 *Serial Number*: `{sn}`
+
+Silakan pilih aksi berikut:
+"""
+            keyboard = [
+                [
+                    InlineKeyboardButton("◾ Set ONT", callback_data=f"setqr_{sn}"),
+                    InlineKeyboardButton("📶 Redaman", callback_data=f"damanqr_{sn}"),
+                    InlineKeyboardButton("📡 SSID", callback_data=f"ssidqr_{sn}")
+                ],
+                [
+                    InlineKeyboardButton("ℹ️ Info ONT", callback_data=f"infoqr_{sn}"),
+                    InlineKeyboardButton("➕ Add ONT", callback_data=f"input_data_{sn}"),
+                    InlineKeyboardButton("🗑️ Delete", callback_data=f"hapus_{sn}")
+                ]
+            ]
+            await update.message.reply_text(msg, parse_mode="Markdown", reply_markup=InlineKeyboardMarkup(keyboard))
+            qr_waiting_users.discard(user_id)
+            return
+        await update.message.reply_text("❌ Gagal mendeteksi QR code atau tidak mengandung SN.")
+    except Exception as e:
+        await update.message.reply_text(f"⚠️ Gagal membaca QR: {e}")
+    finally:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        qr_waiting_users.discard(user_id)
+
+async def handle_qr_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    data = query.data
+
+    if data.startswith("setqr_"):
+        sn = data.replace("setqr_", "")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"/set {sn}")
+    elif data.startswith("damanqr_"):
+        sn = data.replace("damanqr_", "")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"/daman {sn}")
+    elif data.startswith("ssidqr_"):
+        sn = data.replace("ssidqr_", "")
+        await query.edit_message_text(f"📝 Format penggantian SSID:\n/setssid {sn} <SSIDBaru>")
+    elif data.startswith("infoqr_"):
+        sn = data.replace("infoqr_", "")
+        await query.edit_message_text(f"ℹ️ Info Sementara dari QR:\nSerial Number: `{sn}`", parse_mode="Markdown")
+    elif data.startswith("input_data_"):
+        sn = data.replace("input_data_", "")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"/dapel {sn}")
+    elif data.startswith("hapus_"):
+        sn = data.replace("hapus_", "")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"/hapusont {sn}")
+
+async def button(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query
+    data = query.data
+
+    if data == 'bagus':
+        await bagus(update, context)
+    elif data == 'baik':
+        await baik(update, context)
+    elif data == 'buruk':
+        await buruk(update, context)
+    elif data == 'live':
+        await live(update, context)
+    elif data == 'los':
+        await los(update, context)
+
+    await query.answer()
+
+
+async def help(update: Update, context: CallbackContext) -> None:
+    help_text = (
+        "Daftar Perintah Bot:\n\n"
+        "/input (sn) - Tambah data pelanggan\n"
+        "/revoke (sn) - Ganti ONT pelanggan\n"
+        "/delont (sn) - Hapus ONT dari data\n"
+        "/cari (sn) - Cari data pelanggan\n\n"
+        "/set (sn)- set ONT (pastikan sudah di reset)\n"
+        "/setssid (sn)- Mengganti nama wifi\n"
+        "/format (sn) - Reset Factory ONT\n"
+        "/restart (sn) - Merestart ONT\n\n"
+        "/cekont - Menampilkan total ONT\n"
+        "/daman (sn) - Menampilkan Status dan Redaman ONT\n"
+        "/los - Menampilkan total LOS\n\n"
+        "Gunakan perintah di atas untuk mendapatkan informasi yang diinginkan."
+    )
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=help_text)
+
+
+async def notify_restart(app: Application):
+    try:
+        await app.bot.send_message(chat_id=ADM_ID, text="✅ Bot Kembali Aktif dengan Script Terbaru")
+    except Exception as e:
+        print(f"[!] Gagal kirim notifikasi ke Telegram: {e}")
+
+
+def main() -> None:
+    application = Application.builder().token(TOKEN).build()
+    
+    # Menambahkan handler untuk perintah /pendapatan
+    application.add_handler(CommandHandler('info', info))
+    application.add_handler(CommandHandler('rehash', restart))
+    application.add_handler(CommandHandler('setssid', setssid))
+    application.add_handler(CommandHandler('set', set_wifi))   
+    application.add_handler(CommandHandler('daman', redaman))
+	
+    application.add_handler(CommandHandler('format', factoryreset))   
+    application.add_handler(CommandHandler('restart', restart_device))
+	
+    
+    application.add_handler(CommandHandler('delont', hapus_ont))     
+    application.add_handler(CommandHandler('revoke', ganti_ont))    
+    application.add_handler(CommandHandler('input', input_dapel)) 
+    application.add_handler(CommandHandler('cari', cari_sn)) 
+
+    
+    application.add_handler(CommandHandler('cekont', devices))
+    application.add_handler(CommandHandler('bagus', bagus))
+    application.add_handler(CommandHandler('baik', baik))
+    application.add_handler(CommandHandler('buruk', buruk))
+    application.add_handler(CommandHandler('live', live))
+    application.add_handler(CommandHandler('los', los))
+    application.add_handler(CommandHandler('help', help))
+
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    application.add_handler(CallbackQueryHandler(button))
+    application.add_handler(CallbackQueryHandler(handle_input_data_button, pattern=r"^input_data_"))
+
+
+    
+
+    application.post_init = notify_restart
+
+    # Menjalankan polling untuk menerima pembaruan
+    application.run_polling()
+
+if __name__ == '__main__':
+    main()
+
+
+
+
 
