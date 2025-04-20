@@ -24,18 +24,19 @@ from telegram.ext import MessageHandler, filters
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
-
 # Data cache untuk ODC dan ODP
-odc_cache = {}
-odp_cache = {}
 ODC_FILE = "data-odc-odp.json"
 # Path file json lokal
 DATA_FILE = "data_pelanggan.json"
 
-# In-memory cache untuk step-by-step input
-data_cache = {}
-data_cache = load_cache()
 CACHE_FILE = "data-cache-temp.json"
+
+# In-memory cache untuk step-by-step input
+#data_cache = {}
+data_cache = load_cache()
+
+odc_cache = {}
+odp_cache = {}
 
 # Ganti dengan token bot Telegram Anda
 TOKEN = '7945661839:AAEDWQYylOIAZZdFdcuaCuZmmOkzRTGyGOw'
